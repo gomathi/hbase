@@ -18,6 +18,7 @@ import org.apache.hadoop.hbase.ClusterStatus;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.ServerName;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 
 /**
@@ -123,6 +124,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	public Map<ServerName, List<HRegionInfo>> roundRobinAssignment(
 			List<HRegionInfo> regions, List<ServerName> servers) {
 		// TODO Auto-generated method stub
+
 		return null;
 	}
 
@@ -161,6 +163,10 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			}
 
 		}
+		LOG.info("No of unavailable servers which were previously assigned to regions : "
+				+ allUnavailServers.size()
+				+ "and unavailable hosts are"
+				+ Joiner.on("\n").join(allUnavailServers));
 		return result;
 	}
 
@@ -188,15 +194,14 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>(
 					allAvailClusteredServers.values());
 		else {
-			ServerName serverWithMajorityRegions = findServerWithMajorityRegions(localServerNameAndClusteredRegions);
+			String serverWithMajorityRegions = findServerWithMajorityRegions(localServerNameAndClusteredRegions);
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>();
 			bestPlacementRegionClusters.add(allAvailClusteredServers
-					.get(serverWithMajorityRegions.getHostname()));
+					.get(serverWithMajorityRegions));
 
 			for (ServerName server : localServerNameAndClusteredRegions
 					.keySet()) {
-				if (!server.getHostname().equals(
-						serverWithMajorityRegions.getHostname()))
+				if (!server.getHostname().equals(serverWithMajorityRegions))
 					localUnplacedRegions
 							.addAll(localServerNameAndClusteredRegions
 									.get(server));
@@ -213,14 +218,31 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		return result;
 	}
 
-	private ServerName findServerWithMajorityRegions(
+	/**
+	 * Returns the server which hosts many regions. This function is mainly used
+	 * to find server name to host related regions. It makes sense to place a
+	 * related region on a host where already sister regions are living.
+	 * 
+	 * @param serverNameAndRegionsMap
+	 * @return
+	 */
+	private String findServerWithMajorityRegions(
 			ArrayListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
-		ServerName result = null;
-		int maxRegionsSize = -1;
+		String result = null;
+		int maxRegionsCount = -1;
+		int localCount = -1;
+		Map<String, Integer> serverNameAndRegionCount = new HashMap<String, Integer>();
 		for (ServerName serverName : serverNameAndRegionsMap.keySet()) {
-			if (maxRegionsSize < serverNameAndRegionsMap.get(serverName).size()) {
-				maxRegionsSize = serverNameAndRegionsMap.size();
-				result = serverName;
+			if (!serverNameAndRegionCount.containsKey(serverName.getHostname()))
+				serverNameAndRegionCount.put(serverName.getHostname(), 0);
+
+			localCount = serverNameAndRegionCount.get(serverName.getHostname())
+					+ serverNameAndRegionsMap.get(serverName).size();
+			serverNameAndRegionCount.put(serverName.getHostname(), localCount);
+
+			if (localCount > maxRegionsCount) {
+				maxRegionsCount = localCount;
+				result = serverName.getHostname();
 			}
 		}
 
