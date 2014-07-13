@@ -127,8 +127,10 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	}
 
 	/**
-	 * This is called during the cluster initialization. It is critical to
-	 * provide the correct placement logic.
+	 * This is called during the cluster initialization.
+	 * 
+	 * 1) Tries to retain the existing region servers and regions mappings 2)
+	 * Makes sure related regions are placed on the same region servers.
 	 */
 	@Override
 	public Map<ServerName, List<HRegionInfo>> retainAssignment(
@@ -138,15 +140,15 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 
 		List<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Map<String, List<ServerName>> allAvailClusteredServers = clusterServers(servers);
-		Collection<List<HRegionInfo>> clusteredRegionGroups = clusterRegions(regions
+		Collection<List<HRegionInfo>> allClusteredRegionGroups = clusterRegions(regions
 				.keySet());
 
-		for (List<HRegionInfo> clusteredRegionGroup : clusteredRegionGroups) {
-			Map<HRegionInfo, ServerName> regionAndServerNameMap = getMapEntriesForKeys(
+		for (List<HRegionInfo> clusteredRegionGroup : allClusteredRegionGroups) {
+			Map<HRegionInfo, ServerName> clusterdRegionAndServerNameMap = getMapEntriesForKeys(
 					regions, clusteredRegionGroup);
 
 			Map<ServerName, List<HRegionInfo>> partialResult = retainAssignmentCluster(
-					regionAndServerNameMap, allAvailClusteredServers,
+					clusterdRegionAndServerNameMap, allAvailClusteredServers,
 					allUnavailServers);
 
 			for (Map.Entry<ServerName, List<HRegionInfo>> partialEntry : partialResult
@@ -163,41 +165,46 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	}
 
 	private Map<ServerName, List<HRegionInfo>> retainAssignmentCluster(
-			Map<HRegionInfo, ServerName> regions,
+			Map<HRegionInfo, ServerName> clusteredRegionAndServerNameMap,
 			Map<String, List<ServerName>> allAvailClusteredServers,
 			List<ServerName> allUnavailServers) {
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
-		ArrayListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap = reverseMap(regions);
+		ArrayListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions = reverseMap(clusteredRegionAndServerNameMap);
 
-		List<ServerName> servers = new ArrayList<ServerName>(
-				removeDuplicates(regions.values()));
-		List<ServerName> unavailServers = intersect(allUnavailServers, servers);
-		List<ServerName> availServers = minus(servers, unavailServers);
-		List<HRegionInfo> unplacedRegions = findUnplacedRegions(
-				serverNameAndRegionsMap, unavailServers);
+		List<ServerName> localServers = new ArrayList<ServerName>(
+				clusteredRegionAndServerNameMap.values());
+		List<ServerName> localUnavailServers = intersect(allUnavailServers,
+				localServers);
+		List<ServerName> localAvailServers = minus(localServers,
+				localUnavailServers);
+		List<HRegionInfo> localUnplacedRegions = findUnplacedRegions(
+				localServerNameAndClusteredRegions, localUnavailServers);
 
-		for (ServerName unavailServer : unavailServers)
-			serverNameAndRegionsMap.removeAll(unavailServer);
+		for (ServerName unavailServer : localUnavailServers)
+			localServerNameAndClusteredRegions.removeAll(unavailServer);
 
 		List<List<ServerName>> bestPlacementRegionClusters;
-		if (availServers.size() == 0)
+		if (localAvailServers.size() == 0)
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>(
 					allAvailClusteredServers.values());
 		else {
-			ServerName serverWithMajorityRegions = findServerNameWithMajorityRegions(serverNameAndRegionsMap);
+			ServerName serverWithMajorityRegions = findServerWithMajorityRegions(localServerNameAndClusteredRegions);
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>();
 			bestPlacementRegionClusters.add(allAvailClusteredServers
 					.get(serverWithMajorityRegions.getHostname()));
 
-			for (ServerName server : serverNameAndRegionsMap.keySet()) {
+			for (ServerName server : localServerNameAndClusteredRegions
+					.keySet()) {
 				if (!server.getHostname().equals(
 						serverWithMajorityRegions.getHostname()))
-					unplacedRegions.addAll(serverNameAndRegionsMap.get(server));
+					localUnplacedRegions
+							.addAll(localServerNameAndClusteredRegions
+									.get(server));
 			}
 		}
 
 		Map<HRegionInfo, ServerName> assignment = immediateAssignmentCluster(
-				unplacedRegions, bestPlacementRegionClusters);
+				localUnplacedRegions, bestPlacementRegionClusters);
 		for (Map.Entry<HRegionInfo, ServerName> entry : assignment.entrySet()) {
 			if (!result.containsKey(entry.getValue()))
 				result.put(entry.getValue(), new ArrayList<HRegionInfo>());
@@ -206,7 +213,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		return result;
 	}
 
-	private ServerName findServerNameWithMajorityRegions(
+	private ServerName findServerWithMajorityRegions(
 			ArrayListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
 		ServerName result = null;
 		int maxRegionsSize = -1;
@@ -223,28 +230,11 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	private List<HRegionInfo> findUnplacedRegions(
 			ArrayListMultimap<ServerName, HRegionInfo> regionsAndServers,
 			List<ServerName> unavailableServers) {
-		List<HRegionInfo> hRegions = new ArrayList<HRegionInfo>();
+		List<HRegionInfo> unplacedRegions = new ArrayList<HRegionInfo>();
 		for (ServerName serverName : unavailableServers)
 			if (regionsAndServers.containsKey(serverName))
-				hRegions.addAll(regionsAndServers.get(serverName));
-		return hRegions;
-	}
-
-	private static <K, V> ArrayListMultimap<V, K> reverseMap(Map<K, V> input) {
-		ArrayListMultimap<V, K> multiMap = ArrayListMultimap.create();
-		for (Map.Entry<K, V> entry : input.entrySet()) {
-			multiMap.put(entry.getValue(), entry.getKey());
-		}
-
-		return multiMap;
-	}
-
-	private static <A> Collection<A> removeDuplicates(Collection<A> input) {
-		Set<A> set = new HashSet<A>();
-		set.addAll(input);
-		input.clear();
-		input.addAll(set);
-		return input;
+				unplacedRegions.addAll(regionsAndServers.get(serverName));
+		return unplacedRegions;
 	}
 
 	/**
@@ -395,5 +385,14 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			if (!hashedEntriesB.contains(serverName))
 				result.add(serverName);
 		return new ArrayList<T>(result);
+	}
+
+	private static <K, V> ArrayListMultimap<V, K> reverseMap(Map<K, V> input) {
+		ArrayListMultimap<V, K> multiMap = ArrayListMultimap.create();
+		for (Map.Entry<K, V> entry : input.entrySet()) {
+			multiMap.put(entry.getValue(), entry.getKey());
+		}
+
+		return multiMap;
 	}
 }
