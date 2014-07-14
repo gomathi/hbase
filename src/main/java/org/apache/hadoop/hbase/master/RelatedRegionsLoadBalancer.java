@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -20,30 +21,87 @@ import org.apache.hadoop.hbase.ServerName;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 
 /**
  * 
- * A force load balancer which makes sure related regions are placed on the same
+ * A load balancer which makes sure related regions are placed on the same
  * Region server. Without this, related regions might be placed on different
  * Region servers, and will cause increased latency during the processing.
  * 
- * 
- * TODO: This implementation assumes all tables are related to each other. Tries
- * to place regions of the tables on the same region server. If an unrelated
- * table will be managed by the Force server, then we may need to revisit this
- * class to change the placement logic for those unrelated regions.
+ * For this class to do its functionality, it needs to be provided with related
+ * tables information. Look at {@link #RelatedRegionsLoadBalancer(List)}.
  */
 
-public class CustomLoadBalancer extends DefaultLoadBalancer {
+public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	private static final Log LOG = LogFactory.getLog(LoadBalancer.class);
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
+	private static final TableClusterMapping TABLE_CLUSTER_MAPPING = new TableClusterMapping();
+
+	private static interface ClusterDataKeyGenerator<V, K> {
+		K generateKey(V v);
+	}
+
+	private static interface ReassignedRegionsCounter {
+		void incrCounterBy(int value);
+
+		int getCurrCount();
+	}
+
+	/**
+	 * Given a table name, gives the corresponding cluster name. The user has to
+	 * initialize with the related tables information.
+	 * 
+	 */
+	public static class TableClusterMapping {
+
+		private final static String CLUSTER_PREFIX = "cluster-";
+		private final static String RANDOM_PREFIX = "random-";
+
+		private Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
+		private List<Set<String>> clusters = new ArrayList<Set<String>>();
+
+		public void addClusters(List<Set<String>> clusters) {
+			for (Set<String> cluster : clusters)
+				addCluster(cluster);
+		}
+
+		public void addCluster(Set<String> cluster) {
+			clusters.add(cluster);
+			String currClusterName = CLUSTER_PREFIX + clusters.size();
+			clusterIdAndName.put(clusters.size(), currClusterName);
+		}
+
+		private int getClusterIndexOf(String tableName) {
+			for (int i = 0; i < clusters.size(); i++) {
+				if (clusters.get(i).contains(tableName)) {
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		public boolean isPartOfAnyCluster(String tableName) {
+			return (getClusterIndexOf(tableName) != -1) ? true : false;
+		}
+
+		public String getClusterName(String tableName) {
+			int clusterIndex = getClusterIndexOf(tableName);
+			if (clusterIndex != -1)
+				return clusterIdAndName.get(clusterIndex);
+			return RANDOM_PREFIX + RANDOM.nextInt();
+		}
+	}
 
 	private static class RegionStartEndKeyId {
 		private final byte[] startKey, endKey;
+		private final String clusterName;
 
-		public RegionStartEndKeyId(byte[] startKey, byte[] endKey) {
+		public RegionStartEndKeyId(String clusterName, byte[] startKey,
+				byte[] endKey) {
 			this.startKey = startKey;
 			this.endKey = endKey;
+			this.clusterName = clusterName;
 		}
 
 		@Override
@@ -51,6 +109,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			int prime = 31;
 			int result = Arrays.hashCode(startKey);
 			result = result * prime + Arrays.hashCode(endKey);
+			result = result * prime + clusterName.hashCode();
 			return result;
 		}
 
@@ -62,7 +121,8 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 				return true;
 			RegionStartEndKeyId regionStartEndKeyObj = (RegionStartEndKeyId) anoObj;
 			if (Arrays.equals(startKey, regionStartEndKeyObj.startKey)
-					&& Arrays.equals(endKey, regionStartEndKeyObj.endKey))
+					&& Arrays.equals(endKey, regionStartEndKeyObj.endKey)
+					&& clusterName.equals(regionStartEndKeyObj.clusterName))
 				return true;
 			return false;
 		}
@@ -73,8 +133,10 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		@Override
 		public RegionStartEndKeyId generateKey(HRegionInfo hregionInfo) {
 			// TODO Auto-generated method stub
-			return new RegionStartEndKeyId(hregionInfo.getStartKey(),
-					hregionInfo.getEndKey());
+			return new RegionStartEndKeyId(
+					TABLE_CLUSTER_MAPPING.getClusterName(hregionInfo
+							.getTableNameAsString()),
+					hregionInfo.getStartKey(), hregionInfo.getEndKey());
 		}
 
 	};
@@ -88,6 +150,10 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		}
 
 	};
+
+	public RelatedRegionsLoadBalancer(List<Set<String>> clusteredTableNamesList) {
+		TABLE_CLUSTER_MAPPING.addClusters(clusteredTableNamesList);
+	}
 
 	@Override
 	public Configuration getConf() {
@@ -124,8 +190,25 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	public Map<ServerName, List<HRegionInfo>> roundRobinAssignment(
 			List<HRegionInfo> regions, List<ServerName> servers) {
 		// TODO Auto-generated method stub
+		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
 
-		return null;
+		int numServers = servers.size();
+		int numRegions = regions.size();
+		int maxSize = numRegions / numServers;
+		List<List<HRegionInfo>> clusteredRegions = clusterRegions(regions);
+		Iterator<List<HRegionInfo>> itr = clusteredRegions.iterator();
+		for (ServerName server : servers) {
+			while (itr.hasNext()) {
+				List<HRegionInfo> input = itr.next();
+				if (!result.containsKey(server))
+					result.put(server, new ArrayList<HRegionInfo>());
+				result.get(server).addAll(input);
+				if (result.get(server).size() >= maxSize)
+					break;
+			}
+		}
+
+		return result;
 	}
 
 	/**
@@ -139,6 +222,22 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			Map<HRegionInfo, ServerName> regions, List<ServerName> servers) {
 		// TODO Auto-generated method stub
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
+		ReassignedRegionsCounter reassignedCntr = new ReassignedRegionsCounter() {
+
+			int reassignedCnt = 0;
+
+			@Override
+			public void incrCounterBy(int value) {
+				// TODO Auto-generated method stub
+				reassignedCnt += value;
+			}
+
+			@Override
+			public int getCurrCount() {
+				// TODO Auto-generated method stub
+				return reassignedCnt;
+			}
+		};
 
 		List<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Map<String, List<ServerName>> allAvailClusteredServers = clusterServers(servers);
@@ -151,7 +250,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 
 			Map<ServerName, List<HRegionInfo>> partialResult = retainAssignmentCluster(
 					clusterdRegionAndServerNameMap, allAvailClusteredServers,
-					allUnavailServers);
+					allUnavailServers, reassignedCntr);
 
 			for (Map.Entry<ServerName, List<HRegionInfo>> partialEntry : partialResult
 					.entrySet()) {
@@ -167,15 +266,19 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 				+ allUnavailServers.size()
 				+ "and unavailable hosts are"
 				+ Joiner.on("\n").join(allUnavailServers));
+
+		LOG.info("Total no of reassigned regions : "
+				+ reassignedCntr.getCurrCount());
 		return result;
 	}
 
 	private Map<ServerName, List<HRegionInfo>> retainAssignmentCluster(
 			Map<HRegionInfo, ServerName> clusteredRegionAndServerNameMap,
 			Map<String, List<ServerName>> allAvailClusteredServers,
-			List<ServerName> allUnavailServers) {
+			List<ServerName> allUnavailServers,
+			ReassignedRegionsCounter reassignedCntr) {
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
-		ArrayListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions = reverseMap(clusteredRegionAndServerNameMap);
+		ListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions = reverseMap(clusteredRegionAndServerNameMap);
 
 		List<ServerName> localServers = new ArrayList<ServerName>(
 				clusteredRegionAndServerNameMap.values());
@@ -183,7 +286,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 				localServers);
 		List<ServerName> localAvailServers = minus(localServers,
 				localUnavailServers);
-		List<HRegionInfo> localUnplacedRegions = findUnplacedRegions(
+		List<HRegionInfo> localUnplacedRegions = getMapEntriesForKeys(
 				localServerNameAndClusteredRegions, localUnavailServers);
 
 		for (ServerName unavailServer : localUnavailServers)
@@ -205,6 +308,9 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 					localUnplacedRegions
 							.addAll(localServerNameAndClusteredRegions
 									.get(server));
+				else
+					result.put(server,
+							localServerNameAndClusteredRegions.get(server));
 			}
 		}
 
@@ -215,6 +321,8 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 				result.put(entry.getValue(), new ArrayList<HRegionInfo>());
 			result.get(entry.getValue()).add(entry.getKey());
 		}
+
+		reassignedCntr.incrCounterBy(localUnplacedRegions.size());
 		return result;
 	}
 
@@ -227,7 +335,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 	 * @return
 	 */
 	private String findServerWithMajorityRegions(
-			ArrayListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
+			ListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
 		String result = null;
 		int maxRegionsCount = -1;
 		int localCount = -1;
@@ -247,16 +355,6 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		}
 
 		return result;
-	}
-
-	private List<HRegionInfo> findUnplacedRegions(
-			ArrayListMultimap<ServerName, HRegionInfo> regionsAndServers,
-			List<ServerName> unavailableServers) {
-		List<HRegionInfo> unplacedRegions = new ArrayList<HRegionInfo>();
-		for (ServerName serverName : unavailableServers)
-			if (regionsAndServers.containsKey(serverName))
-				unplacedRegions.addAll(regionsAndServers.get(serverName));
-		return unplacedRegions;
 	}
 
 	/**
@@ -318,13 +416,9 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		return super.randomAssignment(servers);
 	}
 
-	private static interface ClusterDataKeyGenerator<V, K> {
-		K generateKey(V v);
-	}
-
 	/**
-	 * Groups the servers based on the hostname. If multiple region servers are
-	 * running on the same host, then this will group them into a group.
+	 * Groups the servers based on the host. If multiple region servers are
+	 * running on the same host, then this will group them into a cluster.
 	 * 
 	 * @param servers
 	 * @return
@@ -359,6 +453,15 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 			result.get(k).add(v);
 		}
 
+		return result;
+	}
+
+	private static <K, V> List<V> getMapEntriesForKeys(ListMultimap<K, V> map,
+			Collection<K> keys) {
+		List<V> result = new ArrayList<V>();
+		for (K key : keys)
+			if (map.containsKey(key))
+				result.addAll(map.get(key));
 		return result;
 	}
 
@@ -409,7 +512,7 @@ public class CustomLoadBalancer extends DefaultLoadBalancer {
 		return new ArrayList<T>(result);
 	}
 
-	private static <K, V> ArrayListMultimap<V, K> reverseMap(Map<K, V> input) {
+	private static <K, V> ListMultimap<V, K> reverseMap(Map<K, V> input) {
 		ArrayListMultimap<V, K> multiMap = ArrayListMultimap.create();
 		for (Map.Entry<K, V> entry : input.entrySet()) {
 			multiMap.put(entry.getValue(), entry.getKey());
