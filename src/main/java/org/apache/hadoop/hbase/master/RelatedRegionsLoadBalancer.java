@@ -36,12 +36,17 @@ import com.google.common.collect.ListMultimap;
 public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	private static final Log LOG = LogFactory.getLog(LoadBalancer.class);
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
-	private static final TableClusterMapping TABLE_CLUSTER_MAPPING = new TableClusterMapping();
+	private static final TableClusterMapping TABLE_CLUSTER_MAPPING = new TableClusterMappingImpl();
 
 	private static interface ClusterDataKeyGenerator<V, K> {
 		K generateKey(V v);
 	}
 
+	/**
+	 * A holder class to count total no of reassigned regions during
+	 * {@link RelatedRegionsLoadBalancer#retainAssignment(Map, List)}
+	 * 
+	 */
 	private static interface ReassignedRegionsCounter {
 		void incrCounterBy(int value);
 
@@ -53,7 +58,17 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	 * initialize with the related tables information.
 	 * 
 	 */
-	public static class TableClusterMapping {
+	private static interface TableClusterMapping {
+		void addClusters(List<Set<String>> clusters);
+
+		void addCluster(Set<String> cluster);
+
+		boolean isPartOfAnyCluster(String tableName);
+
+		String getClusterName(String tableName);
+	}
+
+	private static class TableClusterMappingImpl implements TableClusterMapping {
 
 		private final static String CLUSTER_PREFIX = "cluster-";
 		private final static String RANDOM_PREFIX = "random-";
@@ -216,6 +231,23 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	 * 
 	 * 1) Tries to retain the existing region servers and regions mappings 2)
 	 * Makes sure related regions are placed on the same region servers.
+	 * 
+	 * The algorithms is implemented as following
+	 * 
+	 * <ol>
+	 * 
+	 * <li>Cluster the servers based on hostname, and cluster the regions based
+	 * on (key range, and related tables).
+	 * 
+	 * <li>For each clustered region group, figure out whether any existing
+	 * hosting region server is dead, or figure out if regions are placed on
+	 * different hosts. If yes, try to allocate clustered server group for the
+	 * unplaced regions, and also move the existing regions to a clustered
+	 * server group where already the majority of the regions are living. This
+	 * step is handled by internal method
+	 * {@link #retainAssignmentCluster(Map, Map, List, ReassignedRegionsCounter)}
+	 * 
+	 * </ol>
 	 */
 	@Override
 	public Map<ServerName, List<HRegionInfo>> retainAssignment(
@@ -297,14 +329,14 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>(
 					allAvailClusteredServers.values());
 		else {
-			String serverWithMajorityRegions = findServerWithMajorityRegions(localServerNameAndClusteredRegions);
+			String hostWithMajorityRegions = findHostWithMajorityRegions(localServerNameAndClusteredRegions);
 			bestPlacementRegionClusters = new ArrayList<List<ServerName>>();
 			bestPlacementRegionClusters.add(allAvailClusteredServers
-					.get(serverWithMajorityRegions));
+					.get(hostWithMajorityRegions));
 
 			for (ServerName server : localServerNameAndClusteredRegions
 					.keySet()) {
-				if (!server.getHostname().equals(serverWithMajorityRegions))
+				if (!server.getHostname().equals(hostWithMajorityRegions))
 					localUnplacedRegions
 							.addAll(localServerNameAndClusteredRegions
 									.get(server));
@@ -334,7 +366,7 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	 * @param serverNameAndRegionsMap
 	 * @return
 	 */
-	private String findServerWithMajorityRegions(
+	private String findHostWithMajorityRegions(
 			ListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
 		String result = null;
 		int maxRegionsCount = -1;
