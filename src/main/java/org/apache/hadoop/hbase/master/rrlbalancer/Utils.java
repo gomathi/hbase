@@ -17,6 +17,15 @@ public class Utils {
 		K generateKey(V v);
 	}
 
+	/**
+	 * Complexity : In the average case O(n). Assuming that hash function evenly
+	 * distributes all the region keys. In the worst case O(n ^ 2). It takes
+	 * O(n) storage in the worst case.
+	 * 
+	 * @param input
+	 * @param keyGenerator
+	 * @return
+	 */
 	public static <K, V> Map<K, List<V>> cluster(Collection<V> input,
 			ClusterDataKeyGenerator<V, K> keyGenerator) {
 		Map<K, List<V>> result = new HashMap<K, List<V>>();

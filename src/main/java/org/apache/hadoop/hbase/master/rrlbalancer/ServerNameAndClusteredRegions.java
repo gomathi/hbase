@@ -9,8 +9,11 @@ import org.apache.hadoop.hbase.ServerName;
 /**
  * Used by
  * {@link RelatedRegionsLoadBalancer#balanceClusterByMovingRelatedRegions(Map)}
- * to figure out related regions servers which are placed on different region
- * servers.
+ * to figure out related regions which are placed on different region servers.
+ * 
+ * {@link #compareTo(ServerNameAndClusteredRegions)} is using only
+ * regionClusterKey and clusterSize for comparing the another instance of this
+ * object.
  * 
  */
 class ServerNameAndClusteredRegions implements
