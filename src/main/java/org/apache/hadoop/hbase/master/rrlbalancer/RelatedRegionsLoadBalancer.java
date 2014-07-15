@@ -1,15 +1,17 @@
-package org.apache.hadoop.hbase.master;
+package org.apache.hadoop.hbase.master.rrlbalancer;
 
-import java.util.ArrayDeque;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.cluster;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getMapEntriesForKeys;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.intersect;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.minus;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
@@ -21,10 +23,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.ClusterStatus;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.ServerName;
-import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.master.DefaultLoadBalancer;
+import org.apache.hadoop.hbase.master.LoadBalancer;
+import org.apache.hadoop.hbase.master.MasterServices;
+import org.apache.hadoop.hbase.master.RegionPlan;
+import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
 /**
@@ -40,178 +45,7 @@ import com.google.common.collect.ListMultimap;
 public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	private static final Log LOG = LogFactory.getLog(LoadBalancer.class);
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
-	private static final TableClusterMapping TABLE_CLUSTER_MAPPING = new TableClusterMappingImpl();
-
-	private static interface ClusterDataKeyGenerator<V, K> {
-		K generateKey(V v);
-	}
-
-	/**
-	 * Used by
-	 * {@link RelatedRegionsLoadBalancer#balanceClusterByMovingRelatedRegions(Map)}
-	 * to figure out related regions servers which are placed onto different
-	 * region servers.
-	 * 
-	 */
-	private static class ServerNameAndClusteredRegions implements
-			Comparable<ServerNameAndClusteredRegions> {
-
-		private final ServerName serverName;
-		private final RegionClusterKey regionClusterKey;
-		private final List<HRegionInfo> clusteredRegions;
-		private final int clusterSize;
-
-		public ServerNameAndClusteredRegions(ServerName serverName,
-				RegionClusterKey regionStartKeyEndKey,
-				List<HRegionInfo> clusteredRegions) {
-			this.serverName = serverName;
-			this.regionClusterKey = regionStartKeyEndKey;
-			this.clusteredRegions = clusteredRegions;
-			clusterSize = clusteredRegions.size();
-		}
-
-		public ServerName getServerName() {
-			return serverName;
-		}
-
-		public RegionClusterKey getRegionClusterKey() {
-			return regionClusterKey;
-		}
-
-		public List<HRegionInfo> getClusteredRegions() {
-			return clusteredRegions;
-		}
-
-		@Override
-		public int compareTo(ServerNameAndClusteredRegions o) {
-			// TODO Auto-generated method stub
-			int compRes = regionClusterKey.compareTo(o.regionClusterKey);
-			if (compRes != 0)
-				return compRes;
-			return clusterSize - o.clusterSize;
-		}
-
-	}
-
-	/**
-	 * A holder class to count total no of reassigned regions during
-	 * {@link RelatedRegionsLoadBalancer#retainAssignment(Map, List)}
-	 * 
-	 */
-	private static interface ReassignedRegionsCounter {
-		void incrCounterBy(int value);
-
-		int getCurrCount();
-	}
-
-	/**
-	 * Given a table name, gives the corresponding cluster name. The user has to
-	 * initialize with the related tables information.
-	 * 
-	 */
-	private static interface TableClusterMapping {
-		void addClusters(List<Set<String>> clusters);
-
-		void addCluster(Set<String> cluster);
-
-		boolean isPartOfAnyCluster(String tableName);
-
-		String getClusterName(String tableName);
-	}
-
-	private static class TableClusterMappingImpl implements TableClusterMapping {
-
-		private final static String CLUSTER_PREFIX = "cluster-";
-		private final static String RANDOM_PREFIX = "random-";
-
-		private Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
-		private List<Set<String>> clusters = new ArrayList<Set<String>>();
-
-		public void addClusters(List<Set<String>> clusters) {
-			for (Set<String> cluster : clusters)
-				addCluster(cluster);
-		}
-
-		public void addCluster(Set<String> cluster) {
-			clusters.add(cluster);
-			String currClusterName = CLUSTER_PREFIX + clusters.size();
-			clusterIdAndName.put(clusters.size(), currClusterName);
-		}
-
-		private int getClusterIndexOf(String tableName) {
-			for (int i = 0; i < clusters.size(); i++) {
-				if (clusters.get(i).contains(tableName)) {
-					return i;
-				}
-			}
-			return -1;
-		}
-
-		public boolean isPartOfAnyCluster(String tableName) {
-			return (getClusterIndexOf(tableName) != -1) ? true : false;
-		}
-
-		public String getClusterName(String tableName) {
-			int clusterIndex = getClusterIndexOf(tableName);
-			if (clusterIndex != -1)
-				return clusterIdAndName.get(clusterIndex);
-			return RANDOM_PREFIX + RANDOM.nextInt();
-		}
-	}
-
-	/**
-	 * If two regions share same startkey, endkey, they are called as region
-	 * clusters.
-	 * 
-	 */
-	private static class RegionClusterKey implements
-			Comparable<RegionClusterKey> {
-		private final byte[] startKey, endKey;
-		private final String clusterName;
-
-		public RegionClusterKey(String clusterName, byte[] startKey,
-				byte[] endKey) {
-			this.startKey = startKey;
-			this.endKey = endKey;
-			this.clusterName = clusterName;
-		}
-
-		@Override
-		public int hashCode() {
-			int prime = 31;
-			int result = Arrays.hashCode(startKey);
-			result = result * prime + Arrays.hashCode(endKey);
-			result = result * prime + clusterName.hashCode();
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object anoObj) {
-			if (anoObj == null || !(anoObj instanceof RegionClusterKey))
-				return false;
-			if (this == anoObj)
-				return true;
-			RegionClusterKey regionStartEndKeyObj = (RegionClusterKey) anoObj;
-			if (Arrays.equals(startKey, regionStartEndKeyObj.startKey)
-					&& Arrays.equals(endKey, regionStartEndKeyObj.endKey)
-					&& clusterName.equals(regionStartEndKeyObj.clusterName))
-				return true;
-			return false;
-		}
-
-		@Override
-		public int compareTo(RegionClusterKey o) {
-			// TODO Auto-generated method stub
-			int compRes = clusterName.compareTo(o.clusterName);
-			if (compRes != 0)
-				return compRes;
-			compRes = Bytes.compareTo(startKey, o.startKey);
-			if (compRes != 0)
-				return compRes;
-			compRes = Bytes.compareTo(endKey, o.endKey);
-			return compRes;
-		}
-	}
+	private static final TableClusterMapping TABLE_CLUSTER_MAPPING = new TableClusterMapping();
 
 	private static final ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey> REGION_KEY_GEN = new ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey>() {
 
@@ -283,7 +117,7 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	private List<RegionPlan> balanceClusterByMovingRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		List<RegionPlan> result = new ArrayList<RegionPlan>();
-		Set<ServerNameAndClusteredRegions> sortedServerNamesAndClusteredRegions = new TreeSet<RelatedRegionsLoadBalancer.ServerNameAndClusteredRegions>();
+		Set<ServerNameAndClusteredRegions> sortedServerNamesAndClusteredRegions = new TreeSet<ServerNameAndClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			ServerName serverName = entry.getKey();
@@ -577,83 +411,4 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 		return cluster(regions, REGION_KEY_GEN);
 	}
 
-	// Common functions
-
-	private static <K, V> Map<K, List<V>> cluster(Collection<V> input,
-			ClusterDataKeyGenerator<V, K> keyGenerator) {
-		Map<K, List<V>> result = new HashMap<K, List<V>>();
-		for (V v : input) {
-			K k = keyGenerator.generateKey(v);
-			if (!result.containsKey(k))
-				result.put(k, new ArrayList<V>());
-			result.get(k).add(v);
-		}
-
-		return result;
-	}
-
-	private static <K, V> List<V> getMapEntriesForKeys(ListMultimap<K, V> map,
-			Collection<K> keys) {
-		List<V> result = new ArrayList<V>();
-		for (K key : keys)
-			if (map.containsKey(key))
-				result.addAll(map.get(key));
-		return result;
-	}
-
-	private static <K, V> Map<K, V> getMapEntriesForKeys(Map<K, V> map,
-			Collection<K> keys) {
-		Map<K, V> result = new HashMap<K, V>();
-		for (K key : keys)
-			if (map.containsKey(key))
-				result.put(key, map.get(key));
-		return result;
-	}
-
-	/**
-	 * Returns the common elements of a and b. Note: Result is not a mutli bag
-	 * operation, the input collections are converted into set equivalents.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	private static <T> List<T> intersect(Collection<T> a, Collection<T> b) {
-		Set<T> hashedEntriesA = new HashSet<T>();
-		hashedEntriesA.addAll(a);
-
-		Set<T> result = new HashSet<T>();
-		for (T in : b)
-			if (hashedEntriesA.contains(in))
-				result.add(in);
-		return new ArrayList<T>(result);
-	}
-
-	/**
-	 * Returns the result of (a - b). Note: Result is not a mutli bag operation,
-	 * the input collections are converted into set equivalents.
-	 * 
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	private static <T> List<T> minus(Collection<T> a, Collection<T> b) {
-		Set<T> hashedEntriesB = new HashSet<T>();
-		hashedEntriesB.addAll(b);
-
-		Set<T> result = new HashSet<T>();
-		for (T serverName : a)
-			if (!hashedEntriesB.contains(serverName))
-				result.add(serverName);
-		return new ArrayList<T>(result);
-	}
-
-	private static <K, V> ListMultimap<V, K> reverseMap(Map<K, V> input) {
-		ArrayListMultimap<V, K> multiMap = ArrayListMultimap.create();
-		for (Map.Entry<K, V> entry : input.entrySet()) {
-			multiMap.put(entry.getValue(), entry.getKey());
-		}
-
-		return multiMap;
-	}
 }
