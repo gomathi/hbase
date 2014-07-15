@@ -1,5 +1,6 @@
 package org.apache.hadoop.hbase.master;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -8,9 +9,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,6 +21,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.ClusterStatus;
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.ServerName;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
@@ -40,6 +44,53 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 
 	private static interface ClusterDataKeyGenerator<V, K> {
 		K generateKey(V v);
+	}
+
+	/**
+	 * Used by
+	 * {@link RelatedRegionsLoadBalancer#balanceClusterByMovingRelatedRegions(Map)}
+	 * to figure out related regions servers which are placed onto different
+	 * region servers.
+	 * 
+	 */
+	private static class ServerNameAndClusteredRegions implements
+			Comparable<ServerNameAndClusteredRegions> {
+
+		private final ServerName serverName;
+		private final RegionClusterKey regionClusterKey;
+		private final List<HRegionInfo> clusteredRegions;
+		private final int clusterSize;
+
+		public ServerNameAndClusteredRegions(ServerName serverName,
+				RegionClusterKey regionStartKeyEndKey,
+				List<HRegionInfo> clusteredRegions) {
+			this.serverName = serverName;
+			this.regionClusterKey = regionStartKeyEndKey;
+			this.clusteredRegions = clusteredRegions;
+			clusterSize = clusteredRegions.size();
+		}
+
+		public ServerName getServerName() {
+			return serverName;
+		}
+
+		public RegionClusterKey getRegionClusterKey() {
+			return regionClusterKey;
+		}
+
+		public List<HRegionInfo> getClusteredRegions() {
+			return clusteredRegions;
+		}
+
+		@Override
+		public int compareTo(ServerNameAndClusteredRegions o) {
+			// TODO Auto-generated method stub
+			int compRes = regionClusterKey.compareTo(o.regionClusterKey);
+			if (compRes != 0)
+				return compRes;
+			return clusterSize - o.clusterSize;
+		}
+
 	}
 
 	/**
@@ -108,11 +159,17 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 		}
 	}
 
-	private static class RegionStartEndKeyId {
+	/**
+	 * If two regions share same startkey, endkey, they are called as region
+	 * clusters.
+	 * 
+	 */
+	private static class RegionClusterKey implements
+			Comparable<RegionClusterKey> {
 		private final byte[] startKey, endKey;
 		private final String clusterName;
 
-		public RegionStartEndKeyId(String clusterName, byte[] startKey,
+		public RegionClusterKey(String clusterName, byte[] startKey,
 				byte[] endKey) {
 			this.startKey = startKey;
 			this.endKey = endKey;
@@ -130,25 +187,38 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 
 		@Override
 		public boolean equals(Object anoObj) {
-			if (anoObj == null || !(anoObj instanceof RegionStartEndKeyId))
+			if (anoObj == null || !(anoObj instanceof RegionClusterKey))
 				return false;
 			if (this == anoObj)
 				return true;
-			RegionStartEndKeyId regionStartEndKeyObj = (RegionStartEndKeyId) anoObj;
+			RegionClusterKey regionStartEndKeyObj = (RegionClusterKey) anoObj;
 			if (Arrays.equals(startKey, regionStartEndKeyObj.startKey)
 					&& Arrays.equals(endKey, regionStartEndKeyObj.endKey)
 					&& clusterName.equals(regionStartEndKeyObj.clusterName))
 				return true;
 			return false;
 		}
-	}
-
-	private static final ClusterDataKeyGenerator<HRegionInfo, RegionStartEndKeyId> REGION_KEY_GEN = new ClusterDataKeyGenerator<HRegionInfo, RegionStartEndKeyId>() {
 
 		@Override
-		public RegionStartEndKeyId generateKey(HRegionInfo hregionInfo) {
+		public int compareTo(RegionClusterKey o) {
 			// TODO Auto-generated method stub
-			return new RegionStartEndKeyId(
+			int compRes = clusterName.compareTo(o.clusterName);
+			if (compRes != 0)
+				return compRes;
+			compRes = Bytes.compareTo(startKey, o.startKey);
+			if (compRes != 0)
+				return compRes;
+			compRes = Bytes.compareTo(endKey, o.endKey);
+			return compRes;
+		}
+	}
+
+	private static final ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey> REGION_KEY_GEN = new ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey>() {
+
+		@Override
+		public RegionClusterKey generateKey(HRegionInfo hregionInfo) {
+			// TODO Auto-generated method stub
+			return new RegionClusterKey(
 					TABLE_CLUSTER_MAPPING.getClusterName(hregionInfo
 							.getTableNameAsString()),
 					hregionInfo.getStartKey(), hregionInfo.getEndKey());
@@ -198,7 +268,36 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	public List<RegionPlan> balanceCluster(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		// TODO Auto-generated method stub
+
 		return null;
+	}
+
+	/**
+	 * First step of {@link #balanceCluster(Map)}. If related regions are shared
+	 * between two or more region servers, those related regions will be moved
+	 * to one region server.
+	 * 
+	 * @param clusterState
+	 * @return
+	 */
+	private List<RegionPlan> balanceClusterByMovingRelatedRegions(
+			Map<ServerName, List<HRegionInfo>> clusterState) {
+		List<RegionPlan> result = new ArrayList<RegionPlan>();
+		Set<ServerNameAndClusteredRegions> sortedServerNamesAndClusteredRegions = new TreeSet<RelatedRegionsLoadBalancer.ServerNameAndClusteredRegions>();
+		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
+				.entrySet()) {
+			ServerName serverName = entry.getKey();
+			Map<RegionClusterKey, List<HRegionInfo>> clusteredRegions = clusterRegionsAndGetMap(entry
+					.getValue());
+			for (Map.Entry<RegionClusterKey, List<HRegionInfo>> innerEntry : clusteredRegions
+					.entrySet()) {
+				sortedServerNamesAndClusteredRegions
+						.add(new ServerNameAndClusteredRegions(serverName,
+								innerEntry.getKey(), innerEntry.getValue()));
+			}
+		}
+
+		return result;
 	}
 
 	@Override
@@ -232,19 +331,19 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	 * 1) Tries to retain the existing region servers and regions mappings 2)
 	 * Makes sure related regions are placed on the same region servers.
 	 * 
-	 * The algorithms is implemented as following
+	 * The algorithms is as following
 	 * 
 	 * <ol>
 	 * 
 	 * <li>Cluster the servers based on hostname, and cluster the regions based
-	 * on (key range, and related tables).
+	 * on (key range, and related table group id).
 	 * 
 	 * <li>For each clustered region group, figure out whether any existing
-	 * hosting region server is dead, or figure out if regions are placed on
-	 * different hosts. If yes, try to allocate clustered server group for the
-	 * unplaced regions, and also move the existing regions to a clustered
-	 * server group where already the majority of the regions are living. This
-	 * step is handled by internal method
+	 * hosting region server of the region is dead, or figure out if regions are
+	 * placed on different hosts. If yes, try to allocate a clustered server
+	 * group for the unplaced regions, and also move the existing regions to a
+	 * clustered server group where already the majority of the regions are
+	 * living. This step is handled by internal method
 	 * {@link #retainAssignmentCluster(Map, Map, List, ReassignedRegionsCounter)}
 	 * 
 	 * </ol>
@@ -471,6 +570,11 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 			Collection<HRegionInfo> regions) {
 		return new ArrayList<List<HRegionInfo>>(
 				cluster(regions, REGION_KEY_GEN).values());
+	}
+
+	private static Map<RegionClusterKey, List<HRegionInfo>> clusterRegionsAndGetMap(
+			Collection<HRegionInfo> regions) {
+		return cluster(regions, REGION_KEY_GEN);
 	}
 
 	// Common functions
