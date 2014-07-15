@@ -11,13 +11,12 @@ import java.util.Set;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-
 public class Utils {
 
 	public static interface ClusterDataKeyGenerator<V, K> {
 		K generateKey(V v);
 	}
-	
+
 	public static <K, V> Map<K, List<V>> cluster(Collection<V> input,
 			ClusterDataKeyGenerator<V, K> keyGenerator) {
 		Map<K, List<V>> result = new HashMap<K, List<V>>();
@@ -94,6 +93,10 @@ public class Utils {
 		}
 
 		return multiMap;
+	}
+
+	public static <K, V> List<List<V>> getValuesAsList(Map<K, List<V>> input) {
+		return new ArrayList<List<V>>(input.values());
 	}
 
 }

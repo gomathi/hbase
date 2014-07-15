@@ -5,6 +5,7 @@ import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getMapEntriesForK
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.intersect;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.minus;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValuesAsList;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -121,7 +122,7 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			ServerName serverName = entry.getKey();
-			Map<RegionClusterKey, List<HRegionInfo>> clusteredRegions = clusterRegionsAndGetMap(entry
+			Map<RegionClusterKey, List<HRegionInfo>> clusteredRegions = clusterRegions(entry
 					.getValue());
 			for (Map.Entry<RegionClusterKey, List<HRegionInfo>> innerEntry : clusteredRegions
 					.entrySet()) {
@@ -143,7 +144,7 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 		int numServers = servers.size();
 		int numRegions = regions.size();
 		int maxSize = numRegions / numServers;
-		List<List<HRegionInfo>> clusteredRegions = clusterRegions(regions);
+		List<List<HRegionInfo>> clusteredRegions = getValuesAsList(clusterRegions(regions));
 		Iterator<List<HRegionInfo>> itr = clusteredRegions.iterator();
 		for (ServerName server : servers) {
 			while (itr.hasNext()) {
@@ -206,8 +207,8 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 
 		List<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Map<String, List<ServerName>> allAvailClusteredServers = clusterServers(servers);
-		Collection<List<HRegionInfo>> allClusteredRegionGroups = clusterRegions(regions
-				.keySet());
+		Collection<List<HRegionInfo>> allClusteredRegionGroups = getValuesAsList(clusterRegions(regions
+				.keySet()));
 
 		for (List<HRegionInfo> clusteredRegionGroup : allClusteredRegionGroups) {
 			Map<HRegionInfo, ServerName> clusterdRegionAndServerNameMap = getMapEntriesForKeys(
@@ -331,9 +332,8 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	public Map<HRegionInfo, ServerName> immediateAssignment(
 			List<HRegionInfo> regions, List<ServerName> servers) {
 		// TODO Auto-generated method stub
-		List<List<HRegionInfo>> clusteredRegionGroups = clusterRegions(regions);
-		List<List<ServerName>> clusterdServerGroups = new ArrayList<List<ServerName>>(
-				clusterServers(servers).values());
+		List<List<HRegionInfo>> clusteredRegionGroups = getValuesAsList(clusterRegions(regions));
+		List<List<ServerName>> clusterdServerGroups = getValuesAsList(clusterServers(servers));
 		Map<HRegionInfo, ServerName> assignments = new TreeMap<HRegionInfo, ServerName>();
 
 		for (List<HRegionInfo> clusterRegionGroup : clusteredRegionGroups) {
@@ -400,13 +400,7 @@ public class RelatedRegionsLoadBalancer extends DefaultLoadBalancer {
 	 * @param regions
 	 * @return
 	 */
-	private static List<List<HRegionInfo>> clusterRegions(
-			Collection<HRegionInfo> regions) {
-		return new ArrayList<List<HRegionInfo>>(
-				cluster(regions, REGION_KEY_GEN).values());
-	}
-
-	private static Map<RegionClusterKey, List<HRegionInfo>> clusterRegionsAndGetMap(
+	private static Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
 			Collection<HRegionInfo> regions) {
 		return cluster(regions, REGION_KEY_GEN);
 	}
