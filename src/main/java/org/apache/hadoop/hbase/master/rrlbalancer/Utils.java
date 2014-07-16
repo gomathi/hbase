@@ -81,18 +81,18 @@ public class Utils {
 	 * Returns the result of (a - b). Note: Result is not a mutli bag operation,
 	 * the input collections are converted into set equivalents.
 	 * 
-	 * @param a
-	 * @param b
+	 * @param entriesA
+	 * @param entiresB
 	 * @return
 	 */
-	public static <T> List<T> minus(Collection<T> a, Collection<T> b) {
+	public static <T> List<T> minus(Collection<T> entriesA, Collection<T> entiresB) {
 		Set<T> hashedEntriesB = new HashSet<T>();
-		hashedEntriesB.addAll(b);
+		hashedEntriesB.addAll(entiresB);
 
 		Set<T> result = new HashSet<T>();
-		for (T serverName : a)
-			if (!hashedEntriesB.contains(serverName))
-				result.add(serverName);
+		for (T a : entriesA)
+			if (!hashedEntriesB.contains(a))
+				result.add(a);
 		return new ArrayList<T>(result);
 	}
 
