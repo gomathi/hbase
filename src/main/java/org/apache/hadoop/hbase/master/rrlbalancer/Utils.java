@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -105,7 +106,7 @@ public class Utils {
 	}
 
 	public static <K, V> List<List<V>> getValuesAsList(Map<K, List<V>> input) {
-		return new ArrayList<List<V>>(input.values());
+		return new LinkedList<List<V>>(input.values());
 	}
 
 }

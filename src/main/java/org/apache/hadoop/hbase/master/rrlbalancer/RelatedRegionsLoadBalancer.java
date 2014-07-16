@@ -9,20 +9,18 @@ import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
+import java.util.NavigableSet;
 import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +31,7 @@ import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.master.LoadBalancer;
 import org.apache.hadoop.hbase.master.MasterServices;
 import org.apache.hadoop.hbase.master.RegionPlan;
+import org.apache.hadoop.hbase.master.rrlbalancer.RegionsTruncatorIterator.TruncatedElement;
 import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
 
 import com.google.common.base.Joiner;
@@ -49,7 +48,8 @@ import com.google.common.collect.ListMultimap;
  */
 
 public class RelatedRegionsLoadBalancer implements LoadBalancer {
-	private static final Log LOG = LogFactory.getLog(LoadBalancer.class);
+	private static final Log LOG = LogFactory
+			.getLog(RelatedRegionsLoadBalancer.class);
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
 
 	private final TableClusterMapping tableToClusterMapObj = new TableClusterMapping();
@@ -109,6 +109,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		if (clusterState == null || clusterState.size() == 0) {
 			LOG.debug("Empty cluster has been passed.");
 			return null;
+		}
+
+		// We dont want to move around meta regions between region servers.
+		for (ServerName serverName : clusterState.keySet()) {
+			List<HRegionInfo> regions = clusterState.get(serverName);
+			List<HRegionInfo> nonMetaRegions = removeMetaRegions(regions);
+			clusterState.put(serverName, nonMetaRegions);
 		}
 
 		// First, lets move all the related regions to one region server, if the
@@ -202,285 +209,70 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	}
 
 	/**
-	 * A modified version of the DefaultLoadBalancer#balanceCluster code to
-	 * accomodate our need.
+	 * Balances load across all the region servers.
+	 * 
+	 * Calculates the min and max of regions that could be handled by a region
+	 * server.
+	 * 
+	 * If the value of regionssize / noofregionservers is an integer, then all
+	 * servers will have same no of regions. Otherwise servers will
 	 * 
 	 * @param clusterState
 	 * @return
 	 */
 	private Map<HRegionInfo, RegionPlan> balanceClusterToAverage(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
-		long startTime = System.currentTimeMillis();
 
+		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+		int maxRegions = 0;
 		int numServers = clusterState.size();
-		if (numServers == 0) {
-			LOG.debug("numServers=0 so skipping load balancing");
-			return null;
-		}
-		NavigableMap<ServerAndLoad, List<List<HRegionInfo>>> serversByLoad = new TreeMap<ServerAndLoad, List<List<HRegionInfo>>>();
 		int numRegions = 0;
-		int maxRegionCountPerServer = 0;
-		// Iterate so we can count regions as we build the map
+
+		NavigableSet<ServerAndLoad> serversByLoad = new TreeSet<ServerAndLoad>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
-			List<HRegionInfo> regions = entry.getValue();
-			List<List<HRegionInfo>> clusteredRegions = getValuesAsList(clusterRegions(regions));
-			numRegions += clusteredRegions.size();
+			List<List<HRegionInfo>> clusteredServerRegions = getValuesAsList(clusterRegions(entry
+					.getValue()));
+			numRegions += clusteredServerRegions.size();
+			serversByLoad.add(new ServerAndLoad(entry.getKey(),
+					clusteredServerRegions));
 
-			if (maxRegionCountPerServer < clusteredRegions.size())
-				maxRegionCountPerServer = clusteredRegions.size();
-
-			serversByLoad.put(new ServerAndLoad(entry.getKey(),
-					clusteredRegions.size()), clusteredRegions);
+			if (maxRegions < clusteredServerRegions.size())
+				maxRegions = clusteredServerRegions.size();
 		}
-		// Check if we even need to do any load balancing
-		float average = (float) numRegions / numServers; // for logging
-		// HBASE-3681 check sloppiness first
-		int floor = (int) Math.floor(average * (1 - slop));
-		int ceiling = (int) Math.ceil(average * (1 + slop));
-		if ((serversByLoad.lastKey().getLoad() <= ceiling && serversByLoad
-				.firstKey().getLoad() >= floor) || maxRegionCountPerServer == 1) {
+
+		float avg = (float) numRegions / numServers;
+		int floor = (int) Math.floor(avg * (1 - slop));
+		int ceiling = (int) Math.ceil(avg * (1 + slop));
+
+		if ((serversByLoad.last().getLoad() <= ceiling && serversByLoad.first()
+				.getLoad() >= floor) || maxRegions == 1) {
 			// Skipped because no server outside (min,max) range
-			LOG.info("Skipping load balancing because balanced cluster; "
-					+ "servers=" + numServers + " " + "regions=" + numRegions
-					+ " average=" + average + " " + "mostloaded="
-					+ serversByLoad.lastKey().getLoad() + " leastloaded="
-					+ serversByLoad.firstKey().getLoad());
-			return null;
-		}
-		int min = numRegions / numServers;
-		int max = numRegions % numServers == 0 ? min : min + 1;
-
-		// Using to check balance result.
-		StringBuilder strBalanceParam = new StringBuilder();
-		strBalanceParam.append("Balance parameter: numRegions=")
-				.append(numRegions).append(", numServers=").append(numServers)
-				.append(", max=").append(max).append(", min=").append(min);
-		LOG.debug(strBalanceParam.toString());
-
-		// Balance the cluster
-		// TODO: Look at data block locality or a more complex load to do this
-		Queue<RegionPlan> regionsToMove = new ArrayDeque<RegionPlan>();
-		Map<HRegionInfo, RegionPlan> regionsToReturn = new HashMap<HRegionInfo, RegionPlan>();
-
-		// Walk down most loaded, pruning each to the max
-		int serversOverloaded = 0;
-		Map<ServerName, BalanceInfo> serverBalanceInfo = new TreeMap<ServerName, BalanceInfo>();
-		for (Map.Entry<ServerAndLoad, List<List<HRegionInfo>>> server : serversByLoad
-				.descendingMap().entrySet()) {
-			ServerAndLoad sal = server.getKey();
-			int regionCount = sal.getLoad();
-			if (regionCount <= max) {
-				serverBalanceInfo.put(sal.getServerName(),
-						new BalanceInfo(0, 0));
-				break;
-			}
-			serversOverloaded++;
-			List<List<HRegionInfo>> regions = server.getValue();
-			int numToOffload = Math.min(regionCount - max, regions.size());
-
-			int numTaken = 0;
-			for (int i = 0; i <= numToOffload;) {
-				List<HRegionInfo> hriCluster = regions.get(i); // fetch from
-																// head
-				i++;
-				// Don't rebalance meta regions.
-				if (isMetaRegion(hriCluster))
-					continue;
-				for (HRegionInfo hri : hriCluster)
-					regionsToMove.add(new RegionPlan(hri, sal.getServerName(),
-							null));
-				numTaken++;
-				if (numTaken >= numToOffload)
-					break;
-			}
-			serverBalanceInfo.put(sal.getServerName(), new BalanceInfo(
-					numToOffload, (-1) * numTaken));
-		}
-		int totalNumMoved = regionsToMove.size();
-
-		// Walk down least loaded, filling each to the min
-		int neededRegions = 0; // number of regions needed to bring all up to
-								// min
-
-		Map<ServerName, Integer> underloadedServers = new HashMap<ServerName, Integer>();
-		int maxToTake = numRegions - (int) average;
-		for (Map.Entry<ServerAndLoad, List<List<HRegionInfo>>> server : serversByLoad
-				.entrySet()) {
-			if (maxToTake == 0)
-				break; // no more to take
-			int regionCount = server.getKey().getLoad();
-			if (regionCount >= min && regionCount > 0) {
-				continue; // look for other servers which haven't reached min
-			}
-			int regionsToPut = min - regionCount;
-			if (regionsToPut == 0) {
-				regionsToPut = 1;
-				maxToTake--;
-			}
-			underloadedServers.put(server.getKey().getServerName(),
-					regionsToPut);
-		}
-		// number of servers that get new regions
-		int serversUnderloaded = underloadedServers.size();
-		int incr = 1;
-		List<ServerName> sns = Arrays.asList(underloadedServers.keySet()
-				.toArray(new ServerName[serversUnderloaded]));
-		Collections.shuffle(sns, RANDOM);
-		while (regionsToMove.size() > 0) {
-			int cnt = 0;
-			int i = incr > 0 ? 0 : underloadedServers.size() - 1;
-			for (; i >= 0 && i < underloadedServers.size(); i += incr) {
-				if (regionsToMove.isEmpty())
-					break;
-				ServerName si = sns.get(i);
-				int numToTake = underloadedServers.get(si);
-				if (numToTake == 0)
-					continue;
-
-				addRegionPlan(regionsToMove, si, regionsToReturn);
-
-				underloadedServers.put(si, numToTake - 1);
-				cnt++;
-				BalanceInfo bi = serverBalanceInfo.get(si);
-				if (bi == null) {
-					bi = new BalanceInfo(0, 0);
-					serverBalanceInfo.put(si, bi);
-				}
-				bi.setNumRegionsAdded(bi.getNumRegionsAdded() + 1);
-			}
-			if (cnt == 0)
-				break;
-			// iterates underloadedServers in the other direction
-			incr = -incr;
-		}
-		for (Integer i : underloadedServers.values()) {
-			// If we still want to take some, increment needed
-			neededRegions += i;
+			LOG.info("Skipping balanceClusterToAverage because balanced cluster; "
+					+ "servers="
+					+ numServers
+					+ " "
+					+ "regions="
+					+ numRegions
+					+ " average="
+					+ avg
+					+ " "
+					+ "mostloaded="
+					+ serversByLoad.last().getLoad()
+					+ " leastloaded="
+					+ serversByLoad.first().getLoad());
+			return result;
 		}
 
-		// If none needed to fill all to min and none left to drain all to max,
-		// we are done
-		if (neededRegions == 0 && regionsToMove.isEmpty()) {
-			long endTime = System.currentTimeMillis();
-			LOG.info("Calculated a load balance in " + (endTime - startTime)
-					+ "ms. " + "Moving " + totalNumMoved + " regions off of "
-					+ serversOverloaded + " overloaded servers onto "
-					+ serversUnderloaded + " less loaded servers");
-			return regionsToReturn;
-		}
+		int min = (numRegions / numServers);
+		int max = (numRegions % numServers) == 0 ? min : min + 1;
 
-		// Need to do a second pass.
-		// Either more regions to assign out or servers that are still
-		// underloaded
+		Map<HRegionInfo, RegionPlan> truncateServerByMaxResult = truncateRegionServersToMaxRegions(
+				serversByLoad, min, max);
+		truncateServerByMaxResult.putAll(balanceRegionServersToMinRegions(
+				serversByLoad, min));
 
-		// If we need more to fill min, grab one from each most loaded until
-		// enough
-		if (neededRegions != 0) {
-			// Walk down most loaded, grabbing one from each until we get enough
-			for (Map.Entry<ServerAndLoad, List<List<HRegionInfo>>> server : serversByLoad
-					.descendingMap().entrySet()) {
-				BalanceInfo balanceInfo = serverBalanceInfo.get(server.getKey()
-						.getServerName());
-				int idx = balanceInfo == null ? 0 : balanceInfo
-						.getNextRegionForUnload();
-				if (idx >= server.getValue().size())
-					break;
-				List<HRegionInfo> regionCluster = server.getValue().get(idx);
-				if (isMetaRegion(regionCluster))
-					continue; // Don't move meta regions.
-				for (HRegionInfo hregion : regionCluster)
-					regionsToMove.add(new RegionPlan(hregion, server.getKey()
-							.getServerName(), null));
-				totalNumMoved++;
-				if (--neededRegions == 0) {
-					// No more regions needed, done shedding
-					break;
-				}
-			}
-		}
-
-		// Now we have a set of regions that must be all assigned out
-		// Assign each underloaded up to the min, then if leftovers, assign to
-		// max
-
-		// Walk down least loaded, assigning to each to fill up to min
-		for (Map.Entry<ServerAndLoad, List<List<HRegionInfo>>> server : serversByLoad
-				.entrySet()) {
-			int regionCount = server.getKey().getLoad();
-			if (regionCount >= min)
-				break;
-			BalanceInfo balanceInfo = serverBalanceInfo.get(server.getKey()
-					.getServerName());
-			if (balanceInfo != null) {
-				regionCount += balanceInfo.getNumRegionsAdded();
-			}
-			if (regionCount >= min) {
-				continue;
-			}
-			int numToTake = min - regionCount;
-			int numTaken = 0;
-			while (numTaken < numToTake && 0 < regionsToMove.size()) {
-				addRegionPlan(regionsToMove, server.getKey().getServerName(),
-						regionsToReturn);
-				numTaken++;
-			}
-		}
-
-		// If we still have regions to dish out, assign underloaded to max
-		if (0 < regionsToMove.size()) {
-			for (Map.Entry<ServerAndLoad, List<List<HRegionInfo>>> server : serversByLoad
-					.entrySet()) {
-				int regionCount = server.getKey().getLoad();
-				if (regionCount >= max) {
-					break;
-				}
-				addRegionPlan(regionsToMove, server.getKey().getServerName(),
-						regionsToReturn);
-				if (regionsToMove.isEmpty()) {
-					break;
-				}
-			}
-		}
-
-		long endTime = System.currentTimeMillis();
-
-		if (!regionsToMove.isEmpty() || neededRegions != 0) {
-			// Emit data so can diagnose how balancer went astray.
-			LOG.warn("regionsToMove=" + totalNumMoved + ", numServers="
-					+ numServers + ", serversOverloaded=" + serversOverloaded
-					+ ", serversUnderloaded=" + serversUnderloaded);
-			StringBuilder sb = new StringBuilder();
-			for (Map.Entry<ServerName, List<HRegionInfo>> e : clusterState
-					.entrySet()) {
-				if (sb.length() > 0)
-					sb.append(", ");
-				sb.append(e.getKey().toString());
-				sb.append(" ");
-				sb.append(e.getValue().size());
-			}
-			LOG.warn("Input " + sb.toString());
-		}
-
-		// All done!
-		LOG.info("Done. Calculated a load balance in " + (endTime - startTime)
-				+ "ms. " + "Moving " + totalNumMoved + " regions off of "
-				+ serversOverloaded + " overloaded servers onto "
-				+ serversUnderloaded + " less loaded servers");
-
-		return regionsToReturn;
-	}
-
-	private void addRegionPlan(final Queue<RegionPlan> regionsToMove,
-			final ServerName sn, Map<HRegionInfo, RegionPlan> regionsToReturn) {
-		RegionPlan rp = null;
-		rp = regionsToMove.remove();
-		rp.setDestination(sn);
-		regionsToReturn.put(rp.getRegionInfo(), rp);
-	}
-
-	private boolean isMetaRegion(List<HRegionInfo> hriCluster) {
-		return false;
+		return result;
 	}
 
 	/**
@@ -504,9 +296,93 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 								.getDestination());
 				loadBalMovResult.put(hri, combinedRegionPlan);
 			} else
-				loadBalMovResult.put(hri, entry.getValue());
+				loadBalMovResult.put(hri, rp);
 		}
 		return new ArrayList<RegionPlan>(loadBalMovResult.values());
+	}
+
+	private List<HRegionInfo> removeMetaRegions(List<HRegionInfo> regions) {
+		List<HRegionInfo> result = new ArrayList<HRegionInfo>();
+		for (HRegionInfo region : regions) {
+			if (!region.isMetaRegion())
+				result.add(region);
+		}
+		return result;
+	}
+
+	/**
+	 * Makes sure no region servers are overloaded beyond 'max' regions.
+	 * 
+	 * This is done by removing regions from all region servers which have size
+	 * > max. At the end all region servers will have size <= max.
+	 * 
+	 * @param serversByLoad
+	 * @param min
+	 * @param max
+	 * @return
+	 */
+	private Map<HRegionInfo, RegionPlan> truncateRegionServersToMaxRegions(
+			NavigableSet<ServerAndLoad> serversByLoad, int min, int max) {
+		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
+		RegionsTruncatorIterator maxTruncator = new RegionsTruncatorIterator(
+				serversByLoad.descendingIterator(), max);
+
+		ServersByLoadIterator serversByMinOrMaxLoadItr = new ServersByLoadIterator(
+				serversByLoad.descendingIterator(), min);
+
+		ServerAndLoad dest = null;
+		int limit = min;
+		while (maxTruncator.hasNext()) {
+			if (!serversByMinOrMaxLoadItr.hasNext()) {
+				serversByMinOrMaxLoadItr = new ServersByLoadIterator(
+						serversByLoad.descendingIterator(), max);
+				limit = max;
+			}
+			if (dest == null || dest.getLoad() > limit)
+				dest = serversByMinOrMaxLoadItr.next();
+
+			RegionsTruncatorIterator.TruncatedElement srcRegion = maxTruncator
+					.next();
+			dest.addCluster(srcRegion.regionsCluster);
+			for (HRegionInfo hri : srcRegion.regionsCluster) {
+				result.put(
+						hri,
+						new RegionPlan(hri, srcRegion.serverName, dest
+								.getServerName()));
+			}
+		}
+
+		return result;
+	}
+
+	private Map<HRegionInfo, RegionPlan> balanceRegionServersToMinRegions(
+			NavigableSet<ServerAndLoad> serversByLoad, int min) {
+		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
+		ServersByLoadIterator serversByMinLoadItr = new ServersByLoadIterator(
+				serversByLoad.descendingIterator(), min);
+
+		RegionsTruncatorIterator minTruncator = new RegionsTruncatorIterator(
+				serversByLoad.descendingIterator(), min);
+
+		ServerAndLoad dest = null;
+		while ((serversByMinLoadItr.hasNext() || (dest != null && dest
+				.getLoad() < min)) && minTruncator.hasNext()) {
+			if (dest == null || dest.getLoad() >= min)
+				dest = serversByMinLoadItr.next();
+
+			TruncatedElement srcRegion = minTruncator.next();
+			dest.addCluster(srcRegion.regionsCluster);
+			for (HRegionInfo hri : srcRegion.regionsCluster) {
+				result.put(
+						hri,
+						new RegionPlan(hri, srcRegion.serverName, dest
+								.getServerName()));
+			}
+		}
+
+		return result;
 	}
 
 	@Override
@@ -650,10 +526,14 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		// TODO Auto-generated method stub
 		Map<HRegionInfo, ServerName> assignments = new TreeMap<HRegionInfo, ServerName>();
 
-		if (regions == null || regions.isEmpty())
+		if (regions == null || regions.isEmpty()) {
+			LOG.info("Empty regions have been passed. Returning empty assignments.");
 			return assignments;
-		if (servers == null || servers.isEmpty())
+		}
+		if (servers == null || servers.isEmpty()) {
+			LOG.info("Empty servers have been passed. Returning empty assignments.");
 			return assignments;
+		}
 
 		List<List<HRegionInfo>> clusteredRegionGroups = getValuesAsList(clusterRegions(regions));
 
