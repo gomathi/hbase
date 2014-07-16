@@ -69,16 +69,6 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 	};
 
-	private final ClusterDataKeyGenerator<ServerName, String> serverKeyGener = new ClusterDataKeyGenerator<ServerName, String>() {
-
-		@Override
-		public String generateKey(ServerName serverName) {
-			// TODO Auto-generated method stub
-			return serverName.getHostname();
-		}
-
-	};
-
 	public RelatedRegionsLoadBalancer(List<Set<String>> clusteredTableNamesList) {
 		if (clusteredTableNamesList != null)
 			tableToClusterMapObj.addClusters(clusteredTableNamesList);
@@ -546,22 +536,21 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * This is called during the cluster initialization.
 	 * 
 	 * 1) Tries to retain the existing region servers and regions mappings 2)
-	 * Makes sure related regions are placed on the same region servers.
+	 * Makes sure related regions are placed on the same region server.
 	 * 
 	 * The algorithms is as following
 	 * 
 	 * <ol>
 	 * 
-	 * <li>Cluster the servers based on hostname, and cluster the regions based
-	 * on (key range, and related tables group id).
+	 * <li>Cluster the regions based on (key range, and related tables group
+	 * id).
 	 * 
 	 * <li>For each clustered region group, figure out whether any existing
 	 * hosting region server of the region is dead, or figure out if regions are
-	 * placed on different hosts. If yes, try to allocate a clustered server
-	 * group for the unplaced regions, and also move the existing regions to a
-	 * clustered server group where already the majority of the regions are
-	 * living. This step is handled by internal method
-	 * {@link #retainAssignmentCluster(Map, Map, List, ReassignedRegionsCounter)}
+	 * placed on different hosts. If yes, try to allocate a region server for
+	 * the unplaced regions, and also move the existing regions to a region
+	 * server where already the majority of the regions are living. This step is
+	 * handled by internal method.
 	 * 
 	 * </ol>
 	 */
@@ -572,44 +561,48 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
 		if (servers == null || servers.isEmpty())
 			return result;
-		ReassignedRegionsCounter reassignedCntr = new ReassignedRegionsCounter() {
 
-			int reassignedCnt = 0;
-
-			@Override
-			public void incrCounterBy(int value) {
-				// TODO Auto-generated method stub
-				reassignedCnt += value;
-			}
-
-			@Override
-			public int getCurrCount() {
-				// TODO Auto-generated method stub
-				return reassignedCnt;
-			}
-		};
+		int totReassignedCnt = 0;
 
 		List<ServerName> allUnavailServers = minus(regions.values(), servers);
-		Map<String, List<ServerName>> allAvailClusteredServers = clusterServers(servers);
 		Collection<List<HRegionInfo>> allClusteredRegionGroups = getValuesAsList(clusterRegions(regions
 				.keySet()));
 
 		for (List<HRegionInfo> clusteredRegionGroup : allClusteredRegionGroups) {
-			Map<HRegionInfo, ServerName> clusterdRegionAndServerNameMap = getMapEntriesForKeys(
+			Map<HRegionInfo, ServerName> localClusteredRegionAndServerNameMap = getMapEntriesForKeys(
 					regions, clusteredRegionGroup);
+			ListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions = reverseMap(localClusteredRegionAndServerNameMap);
 
-			Map<ServerName, List<HRegionInfo>> partialResult = retainAssignmentCluster(
-					clusterdRegionAndServerNameMap, allAvailClusteredServers,
-					allUnavailServers, reassignedCntr);
+			List<ServerName> localServers = new ArrayList<ServerName>(
+					localClusteredRegionAndServerNameMap.values());
+			List<ServerName> localUnavailServers = intersect(allUnavailServers,
+					localServers);
 
-			for (Map.Entry<ServerName, List<HRegionInfo>> partialEntry : partialResult
-					.entrySet()) {
-				if (!result.containsKey(partialEntry.getKey()))
-					result.put(partialEntry.getKey(),
-							new ArrayList<HRegionInfo>());
-				result.get(partialEntry.getKey()).addAll(
-						partialEntry.getValue());
+			List<HRegionInfo> unavailableRegions = new ArrayList<HRegionInfo>();
+			for (ServerName unavailServer : localUnavailServers) {
+				unavailableRegions.addAll(localServerNameAndClusteredRegions
+						.removeAll(unavailServer));
 			}
+
+			ServerName bestPlacementServer = (localServerNameAndClusteredRegions
+					.size() == 0) ? (randomAssignment(servers))
+					: findServerNameWithMajorityRegions(localServerNameAndClusteredRegions);
+
+			for (ServerName serverName : localServerNameAndClusteredRegions
+					.keySet()) {
+				if (!bestPlacementServer.equals(serverName))
+					unavailableRegions
+							.addAll(localServerNameAndClusteredRegions
+									.removeAll(serverName));
+			}
+
+			totReassignedCnt += unavailableRegions.size();
+			if (!result.containsKey(bestPlacementServer))
+				result.put(bestPlacementServer, new ArrayList<HRegionInfo>());
+			result.get(bestPlacementServer).addAll(unavailableRegions);
+			result.get(bestPlacementServer)
+					.addAll(localServerNameAndClusteredRegions
+							.get(bestPlacementServer));
 
 		}
 		LOG.info("No of unavailable servers which were previously assigned to regions : "
@@ -617,62 +610,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				+ "and unavailable hosts are"
 				+ Joiner.on("\n").join(allUnavailServers));
 
-		LOG.info("Total no of reassigned regions : "
-				+ reassignedCntr.getCurrCount());
-		return result;
-	}
-
-	private Map<ServerName, List<HRegionInfo>> retainAssignmentCluster(
-			Map<HRegionInfo, ServerName> clusteredRegionAndServerNameMap,
-			Map<String, List<ServerName>> allAvailClusteredServers,
-			List<ServerName> allUnavailServers,
-			ReassignedRegionsCounter reassignedCntr) {
-		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
-		ListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions = reverseMap(clusteredRegionAndServerNameMap);
-
-		List<ServerName> localServers = new ArrayList<ServerName>(
-				clusteredRegionAndServerNameMap.values());
-		List<ServerName> localUnavailServers = intersect(allUnavailServers,
-				localServers);
-		List<ServerName> localAvailServers = minus(localServers,
-				localUnavailServers);
-		List<HRegionInfo> localUnplacedRegions = getMapEntriesForKeys(
-				localServerNameAndClusteredRegions, localUnavailServers);
-
-		for (ServerName unavailServer : localUnavailServers)
-			localServerNameAndClusteredRegions.removeAll(unavailServer);
-
-		List<List<ServerName>> bestPlacementRegionClusters;
-		if (localAvailServers.size() == 0)
-			bestPlacementRegionClusters = new ArrayList<List<ServerName>>(
-					allAvailClusteredServers.values());
-		else {
-			String hostWithMajorityRegions = findHostWithMajorityRegions(localServerNameAndClusteredRegions);
-			bestPlacementRegionClusters = new ArrayList<List<ServerName>>();
-			bestPlacementRegionClusters.add(allAvailClusteredServers
-					.get(hostWithMajorityRegions));
-
-			for (ServerName server : localServerNameAndClusteredRegions
-					.keySet()) {
-				if (!server.getHostname().equals(hostWithMajorityRegions))
-					localUnplacedRegions
-							.addAll(localServerNameAndClusteredRegions
-									.get(server));
-				else
-					result.put(server,
-							localServerNameAndClusteredRegions.get(server));
-			}
-		}
-
-		Map<HRegionInfo, ServerName> assignment = immediateAssignmentCluster(
-				localUnplacedRegions, bestPlacementRegionClusters);
-		for (Map.Entry<HRegionInfo, ServerName> entry : assignment.entrySet()) {
-			if (!result.containsKey(entry.getValue()))
-				result.put(entry.getValue(), new ArrayList<HRegionInfo>());
-			result.get(entry.getValue()).add(entry.getKey());
-		}
-
-		reassignedCntr.incrCounterBy(localUnplacedRegions.size());
+		LOG.info("Total no of reassigned regions : " + totReassignedCnt);
 		return result;
 	}
 
@@ -684,23 +622,15 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param serverNameAndRegionsMap
 	 * @return
 	 */
-	private String findHostWithMajorityRegions(
+	private ServerName findServerNameWithMajorityRegions(
 			ListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
-		String result = null;
+		ServerName result = null;
 		int maxRegionsCount = -1;
-		int localCount = -1;
-		Map<String, Integer> serverNameAndRegionCount = new HashMap<String, Integer>();
 		for (ServerName serverName : serverNameAndRegionsMap.keySet()) {
-			if (!serverNameAndRegionCount.containsKey(serverName.getHostname()))
-				serverNameAndRegionCount.put(serverName.getHostname(), 0);
-
-			localCount = serverNameAndRegionCount.get(serverName.getHostname())
-					+ serverNameAndRegionsMap.get(serverName).size();
-			serverNameAndRegionCount.put(serverName.getHostname(), localCount);
-
-			if (localCount > maxRegionsCount) {
-				maxRegionsCount = localCount;
-				result = serverName.getHostname();
+			if (serverNameAndRegionsMap.get(serverName).size() > maxRegionsCount) {
+				maxRegionsCount = serverNameAndRegionsMap.get(serverName)
+						.size();
+				result = serverName;
 			}
 		}
 
@@ -724,45 +654,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			return assignments;
 
 		List<List<HRegionInfo>> clusteredRegionGroups = getValuesAsList(clusterRegions(regions));
-		List<List<ServerName>> clusterdServerGroups = getValuesAsList(clusterServers(servers));
 
 		for (List<HRegionInfo> clusterRegionGroup : clusteredRegionGroups) {
-			assignments.putAll(immediateAssignmentCluster(clusterRegionGroup,
-					clusterdServerGroups));
+			ServerName randomServer = randomAssignment(servers);
+			for (HRegionInfo clusterRegion : clusterRegionGroup)
+				assignments.put(clusterRegion, randomServer);
 		}
 		return assignments;
-	}
-
-	private Map<HRegionInfo, ServerName> immediateAssignmentCluster(
-			List<HRegionInfo> clusteredRegionGroup,
-			List<List<ServerName>> clusterdServerGroups) {
-		// TODO Auto-generated method stub
-		Map<HRegionInfo, ServerName> assignments = new TreeMap<HRegionInfo, ServerName>();
-
-		List<ServerName> clusteredServerGroup = findBestCluster(clusterdServerGroups);
-		int i = 0;
-		int mod = clusteredServerGroup.size();
-		for (HRegionInfo hRegionInfo : clusteredRegionGroup) {
-			assignments.put(hRegionInfo, clusteredServerGroup.get(i));
-			i = (i + 1) % mod;
-		}
-
-		return assignments;
-	}
-
-	/**
-	 * Current implementation gives a random cluster group from all the groups.
-	 * 
-	 * TODO: Using history metrics of clustered server groups, can we find the
-	 * best cluster server group?
-	 * 
-	 * @param allClusteredServerGroups
-	 * @return
-	 */
-	private List<ServerName> findBestCluster(
-			List<List<ServerName>> allClusteredServerGroups) {
-		return allClusteredServerGroups.get(RANDOM
-				.nextInt(allClusteredServerGroups.size()));
 	}
 
 	@Override
@@ -771,19 +669,6 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		if (servers == null || servers.isEmpty())
 			return null;
 		return servers.get(RANDOM.nextInt(servers.size()));
-	}
-
-	/**
-	 * Groups the servers based on the host. If multiple region servers are
-	 * running on the same host, then this will group them into a cluster.
-	 * 
-	 * @param servers
-	 * @return
-	 */
-
-	private Map<String, List<ServerName>> clusterServers(
-			Collection<ServerName> servers) {
-		return cluster(servers, serverKeyGener);
 	}
 
 	/**
