@@ -497,12 +497,14 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		for (Map.Entry<HRegionInfo, RegionPlan> entry : relRegionsMovResult
 				.entrySet()) {
 			HRegionInfo hri = entry.getKey();
+			RegionPlan rp = entry.getValue();
 			if (loadBalMovResult.containsKey(hri)) {
-				RegionPlan combinedRegionPlan = new RegionPlan(hri, entry
-						.getValue().getSource(), loadBalMovResult.get(hri)
-						.getDestination());
+				RegionPlan combinedRegionPlan = new RegionPlan(hri,
+						rp.getSource(), loadBalMovResult.get(hri)
+								.getDestination());
 				loadBalMovResult.put(hri, combinedRegionPlan);
-			}
+			} else
+				loadBalMovResult.put(hri, entry.getValue());
 		}
 		return new ArrayList<RegionPlan>(loadBalMovResult.values());
 	}
