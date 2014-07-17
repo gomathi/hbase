@@ -314,7 +314,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * Makes sure no region servers are overloaded beyond 'max' regions.
 	 * 
 	 * This is done by removing regions from all region servers which have size
-	 * > max. At the end all region servers will have size <= max.
+	 * > max, and putting them on region servers have < max regions. At the end
+	 * all region servers will have size <= max.
 	 * 
 	 * @param serversByLoad
 	 * @param min
@@ -339,7 +340,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 						serversByLoad.descendingIterator(), max);
 				limit = max;
 			}
-			if (dest == null || dest.getLoad() > limit)
+			if ((dest == null || dest.getLoad() >= limit)
+					&& serversByMinOrMaxLoadItr.hasNext())
 				dest = serversByMinOrMaxLoadItr.next();
 
 			RegionsTruncatorIterator.TruncatedElement srcRegion = maxTruncator
@@ -390,6 +392,15 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			List<HRegionInfo> regions, List<ServerName> servers) {
 		// TODO Auto-generated method stub
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
+
+		if (regions == null || regions.isEmpty()) {
+			LOG.info("Empty regions have been passed. Returning empty assignments.");
+			return result;
+		}
+		if (servers == null || servers.isEmpty()) {
+			LOG.info("Empty servers have been passed. Returning empty assignments.");
+			return result;
+		}
 
 		int numServers = servers.size();
 		int numRegions = regions.size();
