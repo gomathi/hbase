@@ -21,7 +21,6 @@ import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -169,7 +168,9 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
-		PriorityQueue<ServerNameAndClusteredRegions> sortedQue = new PriorityQueue<ServerNameAndClusteredRegions>();
+		PriorityQueue<ServerNameAndClusteredRegions> sortedQue = new PriorityQueue<ServerNameAndClusteredRegions>(
+				100,
+				new ServerNameAndClusteredRegions.ServerNameAndClusteredRegionsComparator());
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			ServerName serverName = entry.getKey();
@@ -231,7 +232,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		int numServers = clusterState.size();
 		int numRegions = 0;
 
-		NavigableSet<ServerAndLoad> serversByLoad = new TreeSet<ServerAndLoad>();
+		List<ServerAndLoad> serversByLoad = new ArrayList<ServerAndLoad>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			List<List<HRegionInfo>> clusteredServerRegions = getValuesAsList(clusterRegions(entry
@@ -244,12 +245,17 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				maxRegions = clusteredServerRegions.size();
 		}
 
+		Collections.sort(serversByLoad,
+				new ServerAndLoad.ServerAndLoadComparator());
+
 		float avg = (float) numRegions / numServers;
 		int floor = (int) Math.floor(avg * (1 - slop));
 		int ceiling = (int) Math.ceil(avg * (1 + slop));
 
-		if ((serversByLoad.last().getLoad() <= ceiling && serversByLoad.first()
-				.getLoad() >= floor)) {
+		int first = 0;
+		int last = serversByLoad.size() - 1;
+		if ((serversByLoad.get(last).getLoad() <= ceiling && serversByLoad.get(
+				first).getLoad() >= floor)) {
 			// Skipped because no server outside (min,max) range
 			LOG.info("Skipping balanceClusterToAverage because balanced cluster; "
 					+ "servers="
@@ -261,9 +267,9 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 					+ avg
 					+ " "
 					+ "mostloaded="
-					+ serversByLoad.last().getLoad()
+					+ serversByLoad.get(last).getLoad()
 					+ " leastloaded="
-					+ serversByLoad.first().getLoad());
+					+ serversByLoad.get(first).getLoad());
 			return Collections.emptyMap();
 		}
 
@@ -330,21 +336,21 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @return
 	 */
 	private Map<HRegionInfo, RegionPlan> truncateRegionServersToMaxRegions(
-			NavigableSet<ServerAndLoad> serversByLoad, int min, int max) {
+			List<ServerAndLoad> serversByLoad, int min, int max) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
 		RegionsTruncatorIterator maxTruncator = new RegionsTruncatorIterator(
-				serversByLoad.descendingIterator(), max);
+				serversByLoad.iterator(), max);
 
 		ServersByLoadIterator serversByMinOrMaxLoadItr = new ServersByLoadIterator(
-				serversByLoad.descendingIterator(), min);
+				serversByLoad.iterator(), min);
 
 		ServerAndLoad dest = null;
 		int limit = min;
 		while (maxTruncator.hasNext()) {
 			if (!serversByMinOrMaxLoadItr.hasNext()) {
 				serversByMinOrMaxLoadItr = new ServersByLoadIterator(
-						serversByLoad.descendingIterator(), max);
+						serversByLoad.iterator(), max);
 				limit = max;
 				if (serversByMinOrMaxLoadItr.hasNext())
 					dest = serversByMinOrMaxLoadItr.next();
@@ -370,14 +376,14 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	}
 
 	private Map<HRegionInfo, RegionPlan> balanceRegionServersToMinRegions(
-			NavigableSet<ServerAndLoad> serversByLoad, int min) {
+			List<ServerAndLoad> serversByLoad, int min) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
 		ServersByLoadIterator serversByMinLoadItr = new ServersByLoadIterator(
-				serversByLoad.descendingIterator(), min);
+				serversByLoad.iterator(), min);
 
 		RegionsTruncatorIterator minTruncator = new RegionsTruncatorIterator(
-				serversByLoad.descendingIterator(), min);
+				serversByLoad.iterator(), min);
 
 		ServerAndLoad dest = null;
 		while ((serversByMinLoadItr.hasNext() || (dest != null && dest

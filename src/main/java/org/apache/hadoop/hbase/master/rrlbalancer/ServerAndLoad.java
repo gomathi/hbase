@@ -1,5 +1,6 @@
 package org.apache.hadoop.hbase.master.rrlbalancer;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -9,7 +10,7 @@ import org.apache.hadoop.hbase.ServerName;
 /**
  * Data structure that holds servername and 'load'.
  */
-class ServerAndLoad implements Comparable<ServerAndLoad> {
+class ServerAndLoad {
 	private ServerName sn;
 	private List<List<HRegionInfo>> clusteredRegions;
 
@@ -37,19 +38,16 @@ class ServerAndLoad implements Comparable<ServerAndLoad> {
 		clusteredRegions.add(cluster);
 	}
 
-	@Override
-	public int compareTo(ServerAndLoad other) {
-		int diff = this.getLoad() - other.getLoad();
-		return diff != 0 ? diff : this.sn.compareTo(other.getServerName());
-	}
+	public static class ServerAndLoadComparator implements
+			Comparator<ServerAndLoad> {
 
-	@Override
-	public boolean equals(Object o) {
-		if (o == null || !(o instanceof ServerAndLoad))
-			return false;
-		ServerAndLoad obj = (ServerAndLoad) o;
-		if (this.sn.equals(obj.sn))
-			return true;
-		return false;
+		@Override
+		public int compare(ServerAndLoad salFirst, ServerAndLoad salSecond) {
+			// TODO Auto-generated method stub
+			int diff = salFirst.getLoad() - salSecond.getLoad();
+			return diff != 0 ? diff : salFirst.getServerName().compareTo(
+					salSecond.getServerName());
+		}
+
 	}
 }
