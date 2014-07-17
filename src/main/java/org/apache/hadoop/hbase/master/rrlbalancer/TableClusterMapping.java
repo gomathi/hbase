@@ -2,10 +2,13 @@ package org.apache.hadoop.hbase.master.rrlbalancer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Given a table name, gives the corresponding cluster name. The user has to
@@ -13,6 +16,7 @@ import java.util.Set;
  * 
  */
 
+@ThreadSafe
 class TableClusterMapping {
 
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
@@ -28,7 +32,8 @@ class TableClusterMapping {
 	}
 
 	public void addCluster(Set<String> cluster) {
-		clusters.add(cluster);
+		Set<String> mCluster = new HashSet<String>(cluster);
+		clusters.add(mCluster);
 		String currClusterName = CLUSTER_PREFIX + clusters.size();
 		clusterIdAndName.put(clusters.size(), currClusterName);
 	}
@@ -36,7 +41,7 @@ class TableClusterMapping {
 	private int getClusterIndexOf(String tableName) {
 		for (int i = 0; i < clusters.size(); i++) {
 			if (clusters.get(i).contains(tableName)) {
-				return i;
+				return i + 1;
 			}
 		}
 		return -1;
@@ -51,5 +56,13 @@ class TableClusterMapping {
 		if (clusterIndex != -1)
 			return clusterIdAndName.get(clusterIndex);
 		return RANDOM_PREFIX + RANDOM.nextInt();
+	}
+
+	public static void main(String[] args) {
+		Set<String> cluster = new HashSet<String>();
+		cluster.add("test");
+		TableClusterMapping tcm = new TableClusterMapping();
+		tcm.addCluster(cluster);
+		System.out.println(tcm.getClusterName("test"));
 	}
 }

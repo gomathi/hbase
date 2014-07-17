@@ -20,8 +20,10 @@ public class TestTableClusterMapping {
 			Assert.assertFalse(tcMapping.isPartOfAnyCluster(relatedTable));
 		tcMapping.addCluster(relatedTables);
 
-		for (String relatedTable : relatedTables)
+		for (String relatedTable : relatedTables) {
 			Assert.assertTrue(tcMapping.isPartOfAnyCluster(relatedTable));
+			Assert.assertNotNull(tcMapping.getClusterName(relatedTable));
+		}
 
 		Assert.assertNotNull(tcMapping.getClusterName("third"));
 	}

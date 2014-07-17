@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.master.rrlbalancer.RelatedRegionsLoadBalancer;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,7 +61,7 @@ public class TestDefaultLoadBalancer {
   public static void beforeAllTests() throws Exception {
     Configuration conf = HBaseConfiguration.create();
     conf.set("hbase.regions.slop", "0");
-    loadBalancer = new DefaultLoadBalancer();
+    loadBalancer = new RelatedRegionsLoadBalancer(null);
     loadBalancer.setConf(conf);
     rand = new Random();
   }
