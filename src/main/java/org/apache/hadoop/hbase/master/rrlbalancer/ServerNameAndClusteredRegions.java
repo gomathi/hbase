@@ -1,5 +1,6 @@
 package org.apache.hadoop.hbase.master.rrlbalancer;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -11,13 +12,8 @@ import org.apache.hadoop.hbase.ServerName;
  * {@link RelatedRegionsLoadBalancer#balanceClusterByMovingRelatedRegions(Map)}
  * to figure out related regions which are placed on different region servers.
  * 
- * {@link #compareTo(ServerNameAndClusteredRegions)} is using only
- * regionClusterKey and clusterSize for comparing the another instance of this
- * object.
- * 
  */
-class ServerNameAndClusteredRegions implements
-		Comparable<ServerNameAndClusteredRegions> {
+class ServerNameAndClusteredRegions {
 
 	private final ServerName serverName;
 	private final RegionClusterKey regionClusterKey;
@@ -45,13 +41,26 @@ class ServerNameAndClusteredRegions implements
 		return clusteredRegions;
 	}
 
-	@Override
-	public int compareTo(ServerNameAndClusteredRegions o) {
-		// TODO Auto-generated method stub
-		int compRes = regionClusterKey.compareTo(o.regionClusterKey);
-		if (compRes != 0)
-			return compRes;
-		return clusterSize - o.clusterSize;
+	/**
+	 * {@link #compareTo(ServerNameAndClusteredRegions)} is using only
+	 * regionClusterKey and clusterSize for comparing the another instance of
+	 * this object.
+	 * 
+	 */
+	public static class ServerNameAndClusteredRegionsComparator implements
+			Comparator<ServerNameAndClusteredRegions> {
+
+		@Override
+		public int compare(ServerNameAndClusteredRegions first,
+				ServerNameAndClusteredRegions second) {
+			// TODO Auto-generated method stub
+			int compRes = first.regionClusterKey
+					.compareTo(second.regionClusterKey);
+			if (compRes != 0)
+				return compRes;
+			return first.clusterSize - second.clusterSize;
+
+		}
 	}
 
 }

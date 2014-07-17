@@ -10,6 +10,7 @@ import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -126,8 +127,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		Map<HRegionInfo, RegionPlan> balanceRelRegionsResult = balanceClusterToAverage(clusterState);
 
 		// Lets combine the result, and prepare a final region plans.
-		return balanceClusterResult(movRelRegionsResult,
-				balanceRelRegionsResult);
+		return new ArrayList<RegionPlan>(intermediateMerge(movRelRegionsResult,
+				balanceRelRegionsResult).values());
 	}
 
 	/**
@@ -167,6 +168,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<HRegionInfo, RegionPlan> balanceClusterByMovingRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
 		PriorityQueue<ServerNameAndClusteredRegions> sortedQue = new PriorityQueue<ServerNameAndClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
@@ -215,7 +217,9 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * server.
 	 * 
 	 * If the value of regionssize / noofregionservers is an integer, then all
-	 * servers will have same no of regions. Otherwise servers will
+	 * servers will have same no of regions. Otherwise all region servers will
+	 * differ by regions size at most 1.
+	 * 
 	 * 
 	 * @param clusterState
 	 * @return
@@ -223,7 +227,6 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<HRegionInfo, RegionPlan> balanceClusterToAverage(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 
-		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 		int maxRegions = 0;
 		int numServers = clusterState.size();
 		int numRegions = 0;
@@ -246,7 +249,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		int ceiling = (int) Math.ceil(avg * (1 + slop));
 
 		if ((serversByLoad.last().getLoad() <= ceiling && serversByLoad.first()
-				.getLoad() >= floor) || maxRegions == 1) {
+				.getLoad() >= floor)) {
 			// Skipped because no server outside (min,max) range
 			LOG.info("Skipping balanceClusterToAverage because balanced cluster; "
 					+ "servers="
@@ -261,44 +264,45 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 					+ serversByLoad.last().getLoad()
 					+ " leastloaded="
 					+ serversByLoad.first().getLoad());
-			return result;
+			return Collections.emptyMap();
 		}
 
 		int min = (numRegions / numServers);
 		int max = (numRegions % numServers) == 0 ? min : min + 1;
 
-		Map<HRegionInfo, RegionPlan> truncateServerByMaxResult = truncateRegionServersToMaxRegions(
+		Map<HRegionInfo, RegionPlan> fPartial = truncateRegionServersToMaxRegions(
 				serversByLoad, min, max);
-		truncateServerByMaxResult.putAll(balanceRegionServersToMinRegions(
-				serversByLoad, min));
+		Map<HRegionInfo, RegionPlan> sPartial = balanceRegionServersToMinRegions(
+				serversByLoad, min);
 
-		return result;
+		return intermediateMerge(fPartial, sPartial);
 	}
 
 	/**
-	 * Combines the result of {@link #balanceClusterByMovingRelatedRegions(Map)}
-	 * and {@link #balanceClusterToAverage(Map)}
+	 * A region can be moved from through many servers. For example, s1 -> s2 ->
+	 * s3. So the final region plan should be s1 -> s3.
 	 * 
-	 * @param relRegionsMovResult
-	 * @param loadBalMovResult
+	 * This function combines the two partial results and prepares the merged
+	 * result.
+	 * 
+	 * @param fPartial
+	 * @param sPartial
 	 * @return
 	 */
-	private List<RegionPlan> balanceClusterResult(
-			Map<HRegionInfo, RegionPlan> relRegionsMovResult,
-			Map<HRegionInfo, RegionPlan> loadBalMovResult) {
-		for (Map.Entry<HRegionInfo, RegionPlan> entry : relRegionsMovResult
-				.entrySet()) {
+	private Map<HRegionInfo, RegionPlan> intermediateMerge(
+			Map<HRegionInfo, RegionPlan> fPartial,
+			Map<HRegionInfo, RegionPlan> sPartial) {
+		for (Map.Entry<HRegionInfo, RegionPlan> entry : fPartial.entrySet()) {
 			HRegionInfo hri = entry.getKey();
 			RegionPlan rp = entry.getValue();
-			if (loadBalMovResult.containsKey(hri)) {
+			if (sPartial.containsKey(hri)) {
 				RegionPlan combinedRegionPlan = new RegionPlan(hri,
-						rp.getSource(), loadBalMovResult.get(hri)
-								.getDestination());
-				loadBalMovResult.put(hri, combinedRegionPlan);
+						rp.getSource(), sPartial.get(hri).getDestination());
+				sPartial.put(hri, combinedRegionPlan);
 			} else
-				loadBalMovResult.put(hri, rp);
+				sPartial.put(hri, rp);
 		}
-		return new ArrayList<RegionPlan>(loadBalMovResult.values());
+		return sPartial;
 	}
 
 	private List<HRegionInfo> removeMetaRegions(List<HRegionInfo> regions) {
@@ -314,8 +318,11 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * Makes sure no region servers are overloaded beyond 'max' regions.
 	 * 
 	 * This is done by removing regions from all region servers which have size
-	 * > max, and putting them on region servers have < max regions. At the end
-	 * all region servers will have size <= max.
+	 * > max, and putting them on region servers that have < max regions. At the
+	 * end all region servers will have size <= max.
+	 * 
+	 * This does not guarantee all servers have >= min regions though. Look at
+	 * {@link #balanceRegionServersToMinRegions(NavigableSet, int)}
 	 * 
 	 * @param serversByLoad
 	 * @param min
@@ -339,9 +346,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				serversByMinOrMaxLoadItr = new ServersByLoadIterator(
 						serversByLoad.descendingIterator(), max);
 				limit = max;
+				if (serversByMinOrMaxLoadItr.hasNext())
+					dest = serversByMinOrMaxLoadItr.next();
+				else
+					// This should not happen
+					break;
 			}
-			if ((dest == null || dest.getLoad() >= limit)
-					&& serversByMinOrMaxLoadItr.hasNext())
+			if (dest == null || dest.getLoad() >= limit)
 				dest = serversByMinOrMaxLoadItr.next();
 
 			RegionsTruncatorIterator.TruncatedElement srcRegion = maxTruncator
