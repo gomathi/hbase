@@ -11,7 +11,7 @@ import org.apache.hadoop.hbase.ServerName;
 import org.apache.http.annotation.NotThreadSafe;
 
 /**
- * Given a sorted iterator of {@link ServerAndLoad}, it truncates the regions in
+ * Given a sorted iterator of {@link ServerAndLoadForTest}, it truncates the regions in
  * each region server, if it has > maxSize regions.
  * 
  * When this iterator is exhausted by the caller, all the servers will have

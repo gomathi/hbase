@@ -25,7 +25,7 @@ public class TestServersByLoadIterator {
 
 		itr = new ServersByLoadIterator(list.iterator(), -1);
 		testIterator(itr, 0);
-		
+
 		itr = new ServersByLoadIterator(list.iterator(), 5);
 		testIterator(itr, 4);
 	}

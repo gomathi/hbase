@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 
 /**
- * Returns the {@link ServerAndLoad} which have a load less than the given
+ * Returns the {@link ServerAndLoadForTest} which have a load less than the given
  * filtersize.
  * 
  */

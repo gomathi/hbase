@@ -23,9 +23,11 @@ public class TestRegionsTruncatorIterator {
 				list.iterator(), 5);
 		testIterator(tItr, 0);
 
+		list = generateServerAndLoad(loads);
 		tItr = new RegionsTruncatorIterator(list.iterator(), 1);
 		testIterator(tItr, 1);
 
+		list = generateServerAndLoad(loads);
 		tItr = new RegionsTruncatorIterator(list.iterator(), 0);
 		testIterator(tItr, 3);
 	}
