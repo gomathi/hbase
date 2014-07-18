@@ -11,8 +11,8 @@ import org.apache.hadoop.hbase.ServerName;
  * Data structure that holds servername and 'load'.
  */
 class ServerAndLoad {
-	private ServerName sn;
-	private List<List<HRegionInfo>> clusteredRegions;
+	private final ServerName sn;
+	private final List<List<HRegionInfo>> clusteredRegions;
 
 	ServerAndLoad(final ServerName sn,
 			final List<List<HRegionInfo>> clusteredRegions) {

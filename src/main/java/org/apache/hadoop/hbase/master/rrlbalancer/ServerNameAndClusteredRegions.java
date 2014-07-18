@@ -29,6 +29,11 @@ class ServerNameAndClusteredRegions {
 		clusterSize = clusteredRegions.size();
 	}
 
+	/**
+	 * This is used to identify servername of the clustered regions.
+	 * 
+	 * @return
+	 */
 	public ServerName getServerName() {
 		return serverName;
 	}

@@ -6,18 +6,16 @@ import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValuesAsList;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.intersect;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.minus;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.clearValues;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
@@ -168,9 +166,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
-		PriorityQueue<ServerNameAndClusteredRegions> sortedQue = new PriorityQueue<ServerNameAndClusteredRegions>(
-				100,
-				new ServerNameAndClusteredRegions.ServerNameAndClusteredRegionsComparator());
+		List<ServerNameAndClusteredRegions> snacrList = new ArrayList<ServerNameAndClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			ServerName serverName = entry.getKey();
@@ -178,35 +174,36 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 					.getValue());
 			for (Map.Entry<RegionClusterKey, List<HRegionInfo>> innerEntry : clusteredRegions
 					.entrySet()) {
-				sortedQue.add(new ServerNameAndClusteredRegions(serverName,
+				snacrList.add(new ServerNameAndClusteredRegions(serverName,
 						innerEntry.getKey(), innerEntry.getValue()));
 			}
 		}
 
-		Deque<ServerNameAndClusteredRegions> processingQue = new ArrayDeque<ServerNameAndClusteredRegions>();
-		while (sortedQue.peek() != null) {
+		clearValues(clusterState);
+		Collections
+				.sort(snacrList,
+						new ServerNameAndClusteredRegions.ServerNameAndClusteredRegionsComparator());
 
-			while (sortedQue.peek() != null
-					&& (processingQue.isEmpty() || processingQue.peekLast()
-							.getRegionClusterKey()
-							.equals(sortedQue.peek().getRegionClusterKey()))) {
-				processingQue.addLast(sortedQue.remove());
-			}
-
-			ServerName dest = null;
-			if (processingQue.size() > 1)
-				dest = processingQue.peekLast().getServerName();
-			while (processingQue.size() > 1) {
-				ServerNameAndClusteredRegions temp = processingQue
-						.removeFirst();
-				for (HRegionInfo region : temp.getClusteredRegions()) {
-					result.put(region,
-							new RegionPlan(region, temp.getServerName(), dest));
+		for (int beg = 0, prev = 0, curr = 1; curr < snacrList.size(); curr++) {
+			prev = curr - 1;
+			if (!snacrList.get(prev).getRegionClusterKey()
+					.equals(snacrList.get(curr).getRegionClusterKey())) {
+				ServerNameAndClusteredRegions dest = snacrList.get(prev);
+				if (prev - beg > 0) {
+					for (int temp = beg; temp < prev; temp++) {
+						ServerNameAndClusteredRegions src = snacrList.get(temp);
+						for (HRegionInfo hri : src.getClusteredRegions()) {
+							result.put(hri,
+									new RegionPlan(hri, src.getServerName(),
+											dest.getServerName()));
+							clusterState.get(dest.getServerName()).add(hri);
+						}
+					}
 				}
-				clusterState.get(dest).addAll(temp.getClusteredRegions());
+				clusterState.get(dest.getServerName()).addAll(
+						dest.getClusteredRegions());
+				beg = curr;
 			}
-
-			processingQue.clear();
 		}
 		return result;
 	}

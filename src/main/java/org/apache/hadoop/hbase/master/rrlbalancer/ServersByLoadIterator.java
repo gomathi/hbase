@@ -5,11 +5,14 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
- * Returns the {@link ServerAndLoadForTest} which have a load less than the given
- * filtersize.
+ * Returns the {@link ServerAndLoadForTest} which have a load less than the
+ * given filtersize.
  * 
  */
+@NotThreadSafe
 public class ServersByLoadIterator implements Iterator<ServerAndLoad> {
 
 	private final Iterator<ServerAndLoad> intItr;

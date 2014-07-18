@@ -9,9 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
+@ThreadSafe
 public class Utils {
 
 	public static interface ClusterDataKeyGenerator<V, K> {
@@ -85,7 +88,8 @@ public class Utils {
 	 * @param entiresB
 	 * @return
 	 */
-	public static <T> List<T> minus(Collection<T> entriesA, Collection<T> entiresB) {
+	public static <T> List<T> minus(Collection<T> entriesA,
+			Collection<T> entiresB) {
 		Set<T> hashedEntriesB = new HashSet<T>();
 		hashedEntriesB.addAll(entiresB);
 
@@ -107,6 +111,11 @@ public class Utils {
 
 	public static <K, V> List<List<V>> getValuesAsList(Map<K, List<V>> input) {
 		return new LinkedList<List<V>>(input.values());
+	}
+
+	public static <K, V> void clearValues(Map<K, List<V>> input) {
+		for (K key : input.keySet())
+			input.get(key).clear();
 	}
 
 }

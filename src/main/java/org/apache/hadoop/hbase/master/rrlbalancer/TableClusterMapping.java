@@ -19,12 +19,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 class TableClusterMapping {
 
-	private static final Random RANDOM = new Random(System.currentTimeMillis());
+	private final static Random RANDOM = new Random(System.currentTimeMillis());
 	private final static String CLUSTER_PREFIX = "cluster-";
 	private final static String RANDOM_PREFIX = "random-";
 
-	private Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
-	private List<Set<String>> clusters = new ArrayList<Set<String>>();
+	private final Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
+	private final List<Set<String>> clusters = new ArrayList<Set<String>>();
 
 	public void addClusters(List<Set<String>> clusters) {
 		for (Set<String> cluster : clusters)
@@ -56,13 +56,5 @@ class TableClusterMapping {
 		if (clusterIndex != -1)
 			return clusterIdAndName.get(clusterIndex);
 		return RANDOM_PREFIX + RANDOM.nextInt();
-	}
-
-	public static void main(String[] args) {
-		Set<String> cluster = new HashSet<String>();
-		cluster.add("test");
-		TableClusterMapping tcm = new TableClusterMapping();
-		tcm.addCluster(cluster);
-		System.out.println(tcm.getClusterName("test"));
 	}
 }
