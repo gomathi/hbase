@@ -361,24 +361,16 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				serversByMinOrMaxLoadItr = new ServersByLoadIterator(
 						serversByLoad.iterator(), max);
 				limit = max;
-				if (serversByMinOrMaxLoadItr.hasNext())
-					dest = serversByMinOrMaxLoadItr.next();
-				else
-					// This should not happen
-					break;
 			}
-			if (dest == null || dest.getLoad() >= limit)
+			if ((dest == null || dest.getLoad() >= limit)
+					&& serversByMinOrMaxLoadItr.hasNext())
 				dest = serversByMinOrMaxLoadItr.next();
 
 			RegionsTruncatorIterator.TruncatedElement srcRegion = maxTruncator
 					.next();
 			dest.addCluster(srcRegion.regionsCluster);
-			for (HRegionInfo hri : srcRegion.regionsCluster) {
-				result.put(
-						hri,
-						new RegionPlan(hri, srcRegion.serverName, dest
-								.getServerName()));
-			}
+			balanceClusterPrepareRegionPlanInternal(srcRegion.regionsCluster,
+					srcRegion.serverName, dest.getServerName(), result);
 		}
 
 		return result;
@@ -402,15 +394,19 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 			TruncatedElement srcRegion = minTruncator.next();
 			dest.addCluster(srcRegion.regionsCluster);
-			for (HRegionInfo hri : srcRegion.regionsCluster) {
-				result.put(
-						hri,
-						new RegionPlan(hri, srcRegion.serverName, dest
-								.getServerName()));
-			}
+			balanceClusterPrepareRegionPlanInternal(srcRegion.regionsCluster,
+					srcRegion.serverName, dest.getServerName(), result);
 		}
 
 		return result;
+	}
+
+	private void balanceClusterPrepareRegionPlanInternal(
+			List<HRegionInfo> hriList, ServerName src, ServerName dest,
+			Map<HRegionInfo, RegionPlan> result) {
+		for (HRegionInfo hri : hriList) {
+			result.put(hri, new RegionPlan(hri, src, dest));
+		}
 	}
 
 	@Override
