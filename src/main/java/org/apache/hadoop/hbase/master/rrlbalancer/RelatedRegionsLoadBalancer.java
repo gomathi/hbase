@@ -278,23 +278,16 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		int first = 0;
 		int last = serversByLoad.size() - 1;
+
+		LOG.info("Cluster details before balancing: " + "servers=" + numServers
+				+ " " + "regions=" + numRegions + " average=" + avg + " "
+				+ "mostloaded=" + serversByLoad.get(last).getLoad()
+				+ " leastloaded=" + serversByLoad.get(first).getLoad());
 		if ((serversByLoad.get(last).getLoad() <= ceiling && serversByLoad.get(
 				first).getLoad() >= floor)
 				|| maxRegions == 1) {
 			// Skipped because no server outside (min,max) range
-			LOG.info("Skipping balanceClusterToAverage because balanced cluster; "
-					+ "servers="
-					+ numServers
-					+ " "
-					+ "regions="
-					+ numRegions
-					+ " average="
-					+ avg
-					+ " "
-					+ "mostloaded="
-					+ serversByLoad.get(last).getLoad()
-					+ " leastloaded="
-					+ serversByLoad.get(first).getLoad());
+			LOG.info("Cluster is balanced. Skipping further operations.");
 			return Collections.emptyMap();
 		}
 
@@ -305,6 +298,14 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				serversByLoad, min, max);
 		Map<HRegionInfo, RegionPlan> sPartial = balanceRegionServersToMinRegions(
 				serversByLoad, min);
+
+		Collections.sort(serversByLoad,
+				new ServerAndAllClusteredRegions.ServerAndLoadComparator());
+
+		LOG.info("Cluster details after balancing: " + "servers=" + numServers
+				+ " " + "regions=" + numRegions + " average=" + avg + " "
+				+ "mostloaded=" + serversByLoad.get(last).getLoad()
+				+ " leastloaded=" + serversByLoad.get(first).getLoad());
 
 		return merge(fPartial, sPartial);
 	}
