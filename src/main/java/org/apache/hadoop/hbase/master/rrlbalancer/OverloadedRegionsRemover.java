@@ -19,15 +19,15 @@ import org.apache.http.annotation.NotThreadSafe;
  */
 
 @NotThreadSafe
-public class RegionsTruncatorIterator implements
-		Iterator<RegionsTruncatorIterator.TruncatedElement> {
+public class OverloadedRegionsRemover implements
+		Iterator<OverloadedRegionsRemover.TruncatedElement> {
 
 	private final int maxSize;
-	private final Iterator<ServerAndLoad> sortedServersItr;
+	private final Iterator<ServerAndAllClusteredRegions> sortedServersItr;
 	private final Queue<TruncatedElement> processingQue;
-	private ServerAndLoad currProcessingServer;
+	private ServerAndAllClusteredRegions currProcessingServer;
 
-	public RegionsTruncatorIterator(Iterator<ServerAndLoad> sortedServersItr,
+	public OverloadedRegionsRemover(Iterator<ServerAndAllClusteredRegions> sortedServersItr,
 			final int maxSize) {
 		this.maxSize = maxSize;
 		this.sortedServersItr = sortedServersItr;

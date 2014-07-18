@@ -18,7 +18,7 @@ public class TestServersByLoadIterator {
 	public void testForCorrectness() {
 		int[] loads = { 1, 2, 3, 4 };
 
-		List<ServerAndLoad> list = generateServerAndLoad(loads);
+		List<ServerAndAllClusteredRegions> list = generateServerAndLoad(loads);
 		ServersByLoadIterator itr = new ServersByLoadIterator(list.iterator(),
 				3);
 		testIterator(itr, 2);
@@ -40,13 +40,13 @@ public class TestServersByLoadIterator {
 		Assert.assertEquals(expectedCnt, testCnt);
 	}
 
-	private List<ServerAndLoad> generateServerAndLoad(int[] loads) {
-		List<ServerAndLoad> result = new ArrayList<ServerAndLoad>();
+	private List<ServerAndAllClusteredRegions> generateServerAndLoad(int[] loads) {
+		List<ServerAndAllClusteredRegions> result = new ArrayList<ServerAndAllClusteredRegions>();
 		for (int load : loads) {
 			List<List<HRegionInfo>> clusteredRegions = new ArrayList<List<HRegionInfo>>();
 			for (int i = 0; i < load; i++)
 				clusteredRegions.add(new ArrayList<HRegionInfo>());
-			ServerAndLoad sal = new ServerAndLoad(
+			ServerAndAllClusteredRegions sal = new ServerAndAllClusteredRegions(
 					new ServerName(Integer.toString(load), RANDOM.nextInt(),
 							RANDOM.nextInt()), clusteredRegions);
 			result.add(sal);

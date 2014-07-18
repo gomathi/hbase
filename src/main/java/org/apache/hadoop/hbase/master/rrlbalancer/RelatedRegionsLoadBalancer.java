@@ -3,6 +3,7 @@ package org.apache.hadoop.hbase.master.rrlbalancer;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.cluster;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getMapEntriesForKeys;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValuesAsList;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValues;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.intersect;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.minus;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
@@ -29,7 +30,7 @@ import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.master.LoadBalancer;
 import org.apache.hadoop.hbase.master.MasterServices;
 import org.apache.hadoop.hbase.master.RegionPlan;
-import org.apache.hadoop.hbase.master.rrlbalancer.RegionsTruncatorIterator.TruncatedElement;
+import org.apache.hadoop.hbase.master.rrlbalancer.OverloadedRegionsRemover.TruncatedElement;
 import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
 
 import com.google.common.base.Joiner;
@@ -105,9 +106,11 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		// TODO Auto-generated method stub
 
 		if (clusterState == null || clusterState.size() == 0) {
-			LOG.debug("Empty cluster has been passed.");
+			LOG.debug("Empty cluster has been passed. Not balancing the cluster.");
 			return null;
 		}
+
+		long startTime = System.currentTimeMillis();
 
 		// We dont want to move around meta regions between region servers.
 		for (ServerName serverName : clusterState.keySet()) {
@@ -118,14 +121,20 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		// First, lets move all the related regions to one region server, if the
 		// related regions are fragmented across region servers.
-		Map<HRegionInfo, RegionPlan> movRelRegionsResult = balanceClusterByMovingRelatedRegions(clusterState);
+		Map<HRegionInfo, RegionPlan> movRelRegionsResult = defragmentRelatedRegions(clusterState);
 
 		// Lets balance related regions size across all the region servers.
-		Map<HRegionInfo, RegionPlan> balanceRelRegionsResult = balanceClusterToAverage(clusterState);
+		Map<HRegionInfo, RegionPlan> balanceRelRegionsResult = balanceRelatedRegions(clusterState);
 
 		// Lets combine the result, and prepare a final region plans.
-		return new ArrayList<RegionPlan>(intermediateMerge(movRelRegionsResult,
-				balanceRelRegionsResult).values());
+		List<RegionPlan> result = getValues(merge(movRelRegionsResult,
+				balanceRelRegionsResult));
+
+		long endTime = System.currentTimeMillis();
+
+		LOG.info("Total time took for balancing cluster function: "
+				+ (endTime - startTime) + " ms");
+		return result;
 	}
 
 	/**
@@ -162,9 +171,11 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param clusterState
 	 * @return
 	 */
-	private Map<HRegionInfo, RegionPlan> balanceClusterByMovingRelatedRegions(
+	private Map<HRegionInfo, RegionPlan> defragmentRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
+		int totDefragRegions = 0;
 
 		List<ServerNameAndClusteredRegions> snacrList = new ArrayList<ServerNameAndClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
@@ -189,25 +200,29 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			prev = curr - 1;
 			if (!snacrList.get(prev).getRegionClusterKey()
 					.equals(snacrList.get(curr).getRegionClusterKey())) {
-				balanceClusterByMovingRRInternal(beg, prev, result, snacrList,
-						clusterState);
+				totDefragRegions += defragmentRelatedRegionsHelper(beg, prev,
+						result, snacrList, clusterState);
 				beg = curr;
 			}
 		}
 		if (snacrList.size() > 0)
-			balanceClusterByMovingRRInternal(beg, snacrList.size() - 1, result,
+			defragmentRelatedRegionsHelper(beg, snacrList.size() - 1, result,
 					snacrList, clusterState);
+		LOG.info("Total no of defragmented related regions : "
+				+ totDefragRegions);
 		return result;
 	}
 
-	private void balanceClusterByMovingRRInternal(int beg, int last,
+	private int defragmentRelatedRegionsHelper(int beg, int last,
 			Map<HRegionInfo, RegionPlan> result,
 			List<ServerNameAndClusteredRegions> snacrList,
 			Map<ServerName, List<HRegionInfo>> clusterState) {
+		int cntDefragRegions = 0;
 		ServerNameAndClusteredRegions dest = snacrList.get(last);
 		if (last - beg > 0) {
 			for (int temp = beg; temp < last; temp++) {
 				ServerNameAndClusteredRegions src = snacrList.get(temp);
+				cntDefragRegions += src.getClusteredRegions().size();
 				for (HRegionInfo hri : src.getClusteredRegions()) {
 					result.put(hri, new RegionPlan(hri, src.getServerName(),
 							dest.getServerName()));
@@ -217,6 +232,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		}
 		clusterState.get(dest.getServerName()).addAll(
 				dest.getClusteredRegions());
+		return cntDefragRegions;
 	}
 
 	/**
@@ -233,20 +249,20 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param clusterState
 	 * @return
 	 */
-	private Map<HRegionInfo, RegionPlan> balanceClusterToAverage(
+	private Map<HRegionInfo, RegionPlan> balanceRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 
 		int maxRegions = 0;
 		int numServers = clusterState.size();
 		int numRegions = 0;
 
-		List<ServerAndLoad> serversByLoad = new ArrayList<ServerAndLoad>();
+		List<ServerAndAllClusteredRegions> serversByLoad = new ArrayList<ServerAndAllClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
 			List<List<HRegionInfo>> clusteredServerRegions = getValuesAsList(clusterRegions(entry
 					.getValue()));
 			numRegions += clusteredServerRegions.size();
-			serversByLoad.add(new ServerAndLoad(entry.getKey(),
+			serversByLoad.add(new ServerAndAllClusteredRegions(entry.getKey(),
 					clusteredServerRegions));
 
 			if (maxRegions < clusteredServerRegions.size())
@@ -254,7 +270,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		}
 
 		Collections.sort(serversByLoad,
-				new ServerAndLoad.ServerAndLoadComparator());
+				new ServerAndAllClusteredRegions.ServerAndLoadComparator());
 
 		float avg = (float) numRegions / numServers;
 		int floor = (int) Math.floor(avg * (1 - slop));
@@ -263,7 +279,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		int first = 0;
 		int last = serversByLoad.size() - 1;
 		if ((serversByLoad.get(last).getLoad() <= ceiling && serversByLoad.get(
-				first).getLoad() >= floor)) {
+				first).getLoad() >= floor)
+				|| maxRegions == 1) {
 			// Skipped because no server outside (min,max) range
 			LOG.info("Skipping balanceClusterToAverage because balanced cluster; "
 					+ "servers="
@@ -289,7 +306,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		Map<HRegionInfo, RegionPlan> sPartial = balanceRegionServersToMinRegions(
 				serversByLoad, min);
 
-		return intermediateMerge(fPartial, sPartial);
+		return merge(fPartial, sPartial);
 	}
 
 	/**
@@ -303,7 +320,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param sPartial
 	 * @return
 	 */
-	private Map<HRegionInfo, RegionPlan> intermediateMerge(
+	private Map<HRegionInfo, RegionPlan> merge(
 			Map<HRegionInfo, RegionPlan> fPartial,
 			Map<HRegionInfo, RegionPlan> sPartial) {
 		for (Map.Entry<HRegionInfo, RegionPlan> entry : fPartial.entrySet()) {
@@ -345,48 +362,49 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @return
 	 */
 	private Map<HRegionInfo, RegionPlan> truncateRegionServersToMaxRegions(
-			List<ServerAndLoad> serversByLoad, int min, int max) {
+			List<ServerAndAllClusteredRegions> serversByLoad, int min, int max) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
-		RegionsTruncatorIterator maxTruncator = new RegionsTruncatorIterator(
+		OverloadedRegionsRemover overRegItr = new OverloadedRegionsRemover(
 				serversByLoad.iterator(), max);
 
 		ServersByLoadIterator serversByMinOrMaxLoadItr = new ServersByLoadIterator(
 				serversByLoad.iterator(), min);
 
-		ServerAndLoad dest = null;
+		ServerAndAllClusteredRegions dest = null;
 		int limit = min;
-		while (maxTruncator.hasNext()) {
+		while (overRegItr.hasNext()) {
 			if (!serversByMinOrMaxLoadItr.hasNext()) {
 				serversByMinOrMaxLoadItr = new ServersByLoadIterator(
 						serversByLoad.iterator(), max);
 				limit = max;
+				if (!serversByMinOrMaxLoadItr.hasNext())
+					break;
 			}
-			if ((dest == null || dest.getLoad() >= limit)
-					&& serversByMinOrMaxLoadItr.hasNext())
+			if (dest == null || dest.getLoad() >= limit)
 				dest = serversByMinOrMaxLoadItr.next();
 
-			RegionsTruncatorIterator.TruncatedElement srcRegion = maxTruncator
+			OverloadedRegionsRemover.TruncatedElement srcRegion = overRegItr
 					.next();
 			dest.addCluster(srcRegion.regionsCluster);
-			balanceClusterPrepareRegionPlanInternal(srcRegion.regionsCluster,
-					srcRegion.serverName, dest.getServerName(), result);
+			prepareRegionsPlans(srcRegion.regionsCluster, srcRegion.serverName,
+					dest.getServerName(), result);
 		}
 
 		return result;
 	}
 
 	private Map<HRegionInfo, RegionPlan> balanceRegionServersToMinRegions(
-			List<ServerAndLoad> serversByLoad, int min) {
+			List<ServerAndAllClusteredRegions> serversByLoad, int min) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
 		ServersByLoadIterator serversByMinLoadItr = new ServersByLoadIterator(
 				serversByLoad.iterator(), min);
 
-		RegionsTruncatorIterator minTruncator = new RegionsTruncatorIterator(
+		OverloadedRegionsRemover minTruncator = new OverloadedRegionsRemover(
 				serversByLoad.iterator(), min);
 
-		ServerAndLoad dest = null;
+		ServerAndAllClusteredRegions dest = null;
 		while ((serversByMinLoadItr.hasNext() || (dest != null && dest
 				.getLoad() < min)) && minTruncator.hasNext()) {
 			if (dest == null || dest.getLoad() >= min)
@@ -394,16 +412,15 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 			TruncatedElement srcRegion = minTruncator.next();
 			dest.addCluster(srcRegion.regionsCluster);
-			balanceClusterPrepareRegionPlanInternal(srcRegion.regionsCluster,
-					srcRegion.serverName, dest.getServerName(), result);
+			prepareRegionsPlans(srcRegion.regionsCluster, srcRegion.serverName,
+					dest.getServerName(), result);
 		}
 
 		return result;
 	}
 
-	private void balanceClusterPrepareRegionPlanInternal(
-			List<HRegionInfo> hriList, ServerName src, ServerName dest,
-			Map<HRegionInfo, RegionPlan> result) {
+	private void prepareRegionsPlans(List<HRegionInfo> hriList, ServerName src,
+			ServerName dest, Map<HRegionInfo, RegionPlan> result) {
 		for (HRegionInfo hri : hriList) {
 			result.put(hri, new RegionPlan(hri, src, dest));
 		}

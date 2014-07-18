@@ -13,17 +13,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  * 
  */
 @NotThreadSafe
-public class ServersByLoadIterator implements Iterator<ServerAndLoad> {
+public class ServersByLoadIterator implements Iterator<ServerAndAllClusteredRegions> {
 
-	private final Iterator<ServerAndLoad> intItr;
+	private final Iterator<ServerAndAllClusteredRegions> intItr;
 	private final int filterSize;
-	private final Queue<ServerAndLoad> processingQue;
+	private final Queue<ServerAndAllClusteredRegions> processingQue;
 
-	public ServersByLoadIterator(final Iterator<ServerAndLoad> intItr,
+	public ServersByLoadIterator(final Iterator<ServerAndAllClusteredRegions> intItr,
 			final int filterSize) {
 		this.intItr = intItr;
 		this.filterSize = filterSize;
-		processingQue = new ArrayDeque<ServerAndLoad>();
+		processingQue = new ArrayDeque<ServerAndAllClusteredRegions>();
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class ServersByLoadIterator implements Iterator<ServerAndLoad> {
 	}
 
 	@Override
-	public ServerAndLoad next() {
+	public ServerAndAllClusteredRegions next() {
 		// TODO Auto-generated method stub
 		if (processingQue.size() > 0)
 			return processingQue.remove();
@@ -51,7 +51,7 @@ public class ServersByLoadIterator implements Iterator<ServerAndLoad> {
 
 	private void addElement() {
 		while (intItr.hasNext()) {
-			ServerAndLoad temp = intItr.next();
+			ServerAndAllClusteredRegions temp = intItr.next();
 			if (temp.getLoad() < filterSize) {
 				processingQue.add(temp);
 				break;

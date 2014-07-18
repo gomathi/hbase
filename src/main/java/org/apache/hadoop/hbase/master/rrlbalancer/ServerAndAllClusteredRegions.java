@@ -10,11 +10,11 @@ import org.apache.hadoop.hbase.ServerName;
 /**
  * Data structure that holds servername and 'load'.
  */
-class ServerAndLoad {
+class ServerAndAllClusteredRegions {
 	private final ServerName sn;
 	private final List<List<HRegionInfo>> clusteredRegions;
 
-	ServerAndLoad(final ServerName sn,
+	ServerAndAllClusteredRegions(final ServerName sn,
 			final List<List<HRegionInfo>> clusteredRegions) {
 		this.sn = sn;
 		this.clusteredRegions = clusteredRegions;
@@ -39,10 +39,10 @@ class ServerAndLoad {
 	}
 
 	public static class ServerAndLoadComparator implements
-			Comparator<ServerAndLoad> {
+			Comparator<ServerAndAllClusteredRegions> {
 
 		@Override
-		public int compare(ServerAndLoad salFirst, ServerAndLoad salSecond) {
+		public int compare(ServerAndAllClusteredRegions salFirst, ServerAndAllClusteredRegions salSecond) {
 			// TODO Auto-generated method stub
 			int diff = salFirst.getLoad() - salSecond.getLoad();
 			return diff != 0 ? diff : salFirst.getServerName().compareTo(

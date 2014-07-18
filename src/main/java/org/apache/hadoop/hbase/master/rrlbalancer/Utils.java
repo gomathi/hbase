@@ -113,6 +113,10 @@ public class Utils {
 		return new LinkedList<List<V>>(input.values());
 	}
 
+	public static <K, V> List<V> getValues(Map<K, V> input) {
+		return new ArrayList<V>(input.values());
+	}
+
 	public static <K, V> void clearValues(Map<K, List<V>> input) {
 		for (K key : input.keySet())
 			input.get(key).clear();

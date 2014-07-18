@@ -18,21 +18,21 @@ public class TestRegionsTruncatorIterator {
 	public void testForCorrectness() {
 		int[] loads = { 1, 2 };
 
-		List<ServerAndLoad> list = generateServerAndLoad(loads);
-		RegionsTruncatorIterator tItr = new RegionsTruncatorIterator(
+		List<ServerAndAllClusteredRegions> list = generateServerAndLoad(loads);
+		OverloadedRegionsRemover tItr = new OverloadedRegionsRemover(
 				list.iterator(), 5);
 		testIterator(tItr, 0);
 
 		list = generateServerAndLoad(loads);
-		tItr = new RegionsTruncatorIterator(list.iterator(), 1);
+		tItr = new OverloadedRegionsRemover(list.iterator(), 1);
 		testIterator(tItr, 1);
 
 		list = generateServerAndLoad(loads);
-		tItr = new RegionsTruncatorIterator(list.iterator(), 0);
+		tItr = new OverloadedRegionsRemover(list.iterator(), 0);
 		testIterator(tItr, 3);
 	}
 
-	private void testIterator(RegionsTruncatorIterator itr, int expectedCnt) {
+	private void testIterator(OverloadedRegionsRemover itr, int expectedCnt) {
 		int testCnt = 0;
 		while (itr.hasNext()) {
 			itr.next();
@@ -42,8 +42,8 @@ public class TestRegionsTruncatorIterator {
 		Assert.assertEquals(expectedCnt, testCnt);
 	}
 
-	private List<ServerAndLoad> generateServerAndLoad(int[] loads) {
-		List<ServerAndLoad> result = new ArrayList<ServerAndLoad>();
+	private List<ServerAndAllClusteredRegions> generateServerAndLoad(int[] loads) {
+		List<ServerAndAllClusteredRegions> result = new ArrayList<ServerAndAllClusteredRegions>();
 		for (int load : loads) {
 			List<List<HRegionInfo>> clusteredRegions = new ArrayList<List<HRegionInfo>>();
 			for (int i = 0; i < load; i++) {
@@ -51,7 +51,7 @@ public class TestRegionsTruncatorIterator {
 				list.add(new HRegionInfo());
 				clusteredRegions.add(list);
 			}
-			ServerAndLoad sal = new ServerAndLoad(
+			ServerAndAllClusteredRegions sal = new ServerAndAllClusteredRegions(
 					new ServerName(Integer.toString(load), RANDOM.nextInt(),
 							RANDOM.nextInt()), clusteredRegions);
 			result.add(sal);
