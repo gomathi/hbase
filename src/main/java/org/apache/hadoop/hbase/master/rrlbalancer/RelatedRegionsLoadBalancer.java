@@ -184,28 +184,39 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				.sort(snacrList,
 						new ServerNameAndClusteredRegions.ServerNameAndClusteredRegionsComparator());
 
-		for (int beg = 0, prev = 0, curr = 1; curr < snacrList.size(); curr++) {
+		int beg = 0;
+		for (int prev = 0, curr = 1; curr < snacrList.size(); curr++) {
 			prev = curr - 1;
 			if (!snacrList.get(prev).getRegionClusterKey()
 					.equals(snacrList.get(curr).getRegionClusterKey())) {
-				ServerNameAndClusteredRegions dest = snacrList.get(prev);
-				if (prev - beg > 0) {
-					for (int temp = beg; temp < prev; temp++) {
-						ServerNameAndClusteredRegions src = snacrList.get(temp);
-						for (HRegionInfo hri : src.getClusteredRegions()) {
-							result.put(hri,
-									new RegionPlan(hri, src.getServerName(),
-											dest.getServerName()));
-							clusterState.get(dest.getServerName()).add(hri);
-						}
-					}
-				}
-				clusterState.get(dest.getServerName()).addAll(
-						dest.getClusteredRegions());
+				balanceClusterByMovingRRInternal(beg, prev, result, snacrList,
+						clusterState);
 				beg = curr;
 			}
 		}
+		if (snacrList.size() > 0)
+			balanceClusterByMovingRRInternal(beg, snacrList.size() - 1, result,
+					snacrList, clusterState);
 		return result;
+	}
+
+	private void balanceClusterByMovingRRInternal(int beg, int last,
+			Map<HRegionInfo, RegionPlan> result,
+			List<ServerNameAndClusteredRegions> snacrList,
+			Map<ServerName, List<HRegionInfo>> clusterState) {
+		ServerNameAndClusteredRegions dest = snacrList.get(last);
+		if (last - beg > 0) {
+			for (int temp = beg; temp < last; temp++) {
+				ServerNameAndClusteredRegions src = snacrList.get(temp);
+				for (HRegionInfo hri : src.getClusteredRegions()) {
+					result.put(hri, new RegionPlan(hri, src.getServerName(),
+							dest.getServerName()));
+					clusterState.get(dest.getServerName()).add(hri);
+				}
+			}
+		}
+		clusterState.get(dest.getServerName()).addAll(
+				dest.getClusteredRegions());
 	}
 
 	/**
