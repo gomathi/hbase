@@ -26,19 +26,19 @@ class TableClusterMapping {
 	private final Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
 	private final List<Set<String>> clusters = new ArrayList<Set<String>>();
 
-	public synchronized void addClusters(List<Set<String>> clusters) {
+	public synchronized void addClusters(final List<Set<String>> clusters) {
 		for (Set<String> cluster : clusters)
 			addCluster(cluster);
 	}
 
-	public synchronized void addCluster(Set<String> cluster) {
+	public synchronized void addCluster(final Set<String> cluster) {
 		Set<String> mCluster = new HashSet<String>(cluster);
 		clusters.add(mCluster);
 		String currClusterName = CLUSTER_PREFIX + clusters.size();
 		clusterIdAndName.put(clusters.size(), currClusterName);
 	}
 
-	private int getClusterIndexOf(String tableName) {
+	private int getClusterIndexOf(final String tableName) {
 		for (int i = 0; i < clusters.size(); i++) {
 			if (clusters.get(i).contains(tableName)) {
 				return i + 1;
@@ -47,11 +47,11 @@ class TableClusterMapping {
 		return -1;
 	}
 
-	public boolean isPartOfAnyCluster(String tableName) {
+	public boolean isPartOfAnyCluster(final String tableName) {
 		return (getClusterIndexOf(tableName) != -1) ? true : false;
 	}
 
-	public String getClusterName(String tableName) {
+	public String getClusterName(final String tableName) {
 		int clusterIndex = getClusterIndexOf(tableName);
 		if (clusterIndex != -1)
 			return clusterIdAndName.get(clusterIndex);

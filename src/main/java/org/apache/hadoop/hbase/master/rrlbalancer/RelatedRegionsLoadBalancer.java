@@ -1,13 +1,13 @@
 package org.apache.hadoop.hbase.master.rrlbalancer;
 
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.clearValues;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.cluster;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getMapEntriesForKeys;
-import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValuesAsList;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValues;
+import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.getValuesAsList;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.intersect;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.minus;
 import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.reverseMap;
-import static org.apache.hadoop.hbase.master.rrlbalancer.Utils.clearValues;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,8 +69,11 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	};
 
 	public RelatedRegionsLoadBalancer(List<Set<String>> clusteredTableNamesList) {
-		if (clusteredTableNamesList != null)
+		if (clusteredTableNamesList != null) {
+			LOG.debug("Adding " + clusteredTableNamesList.size()
+					+ " to cluster mapping.");
 			tableToClusterMapObj.addClusters(clusteredTableNamesList);
+		}
 	}
 
 	@Override
@@ -496,6 +499,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		List<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Collection<List<HRegionInfo>> allClusteredRegionGroups = getValuesAsList(clusterRegions(regions
 				.keySet()));
+		Map<String, List<ServerName>> hostNameAndAvaServers = clusterServers(servers);
 
 		for (List<HRegionInfo> clusteredRegionGroup : allClusteredRegionGroups) {
 			Map<HRegionInfo, ServerName> localClusteredRegionAndServerNameMap = getMapEntriesForKeys(
@@ -507,6 +511,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			List<ServerName> localUnavailServers = intersect(allUnavailServers,
 					localServers);
 
+			List<ServerName> serversFromAvailableHost = findAvailableHostWithMajorityRegions(
+					hostNameAndAvaServers, localServerNameAndClusteredRegions);
 			List<HRegionInfo> unavailableRegions = new ArrayList<HRegionInfo>();
 			for (ServerName unavailServer : localUnavailServers) {
 				unavailableRegions.addAll(localServerNameAndClusteredRegions
@@ -514,7 +520,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			}
 
 			ServerName bestPlacementServer = (localServerNameAndClusteredRegions
-					.size() == 0) ? (randomAssignment(servers))
+					.size() == 0) ? ((serversFromAvailableHost != null) ? randomAssignment(serversFromAvailableHost)
+					: randomAssignment(servers))
 					: findServerNameWithMajorityRegions(localServerNameAndClusteredRegions);
 
 			for (ServerName serverName : localServerNameAndClusteredRegions
@@ -534,12 +541,28 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 							.get(bestPlacementServer));
 
 		}
-		LOG.info("No of unavailable servers which were previously assigned to regions : "
-				+ allUnavailServers.size()
-				+ "and unavailable hosts are"
+		LOG.info("No of unavailable servers : " + allUnavailServers.size()
+				+ " and unavailable servers are: \n"
 				+ Joiner.on("\n").join(allUnavailServers));
 
 		LOG.info("Total no of reassigned regions : " + totReassignedCnt);
+		return result;
+	}
+
+	private List<ServerName> findAvailableHostWithMajorityRegions(
+			Map<String, List<ServerName>> hostNameAndAvaServers,
+			ListMultimap<ServerName, HRegionInfo> localServerNameAndClusteredRegions) {
+		int maxRegionsCount = -1;
+		List<ServerName> result = null;
+		for (ServerName sn : localServerNameAndClusteredRegions.keySet()) {
+			if (hostNameAndAvaServers.containsKey(sn.getHostname())) {
+				if (localServerNameAndClusteredRegions.get(sn).size() > maxRegionsCount) {
+					result = hostNameAndAvaServers.get(sn.getHostname());
+					maxRegionsCount = localServerNameAndClusteredRegions
+							.get(sn).size();
+				}
+			}
+		}
 		return result;
 	}
 
@@ -613,6 +636,19 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
 			Collection<HRegionInfo> regions) {
 		return cluster(regions, regionKeyGener);
+	}
+
+	private Map<String, List<ServerName>> clusterServers(
+			Collection<ServerName> servers) {
+		return cluster(servers,
+				new ClusterDataKeyGenerator<ServerName, String>() {
+
+					@Override
+					public String generateKey(ServerName v) {
+						// TODO Auto-generated method stub
+						return v.getHostname();
+					}
+				});
 	}
 
 }

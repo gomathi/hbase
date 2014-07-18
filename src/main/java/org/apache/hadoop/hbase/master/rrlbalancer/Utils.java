@@ -3,11 +3,11 @@ package org.apache.hadoop.hbase.master.rrlbalancer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -62,42 +62,47 @@ public class Utils {
 	}
 
 	/**
-	 * Returns the common elements of a and b. Note: Result is not a mutli bag
-	 * operation, the input collections are converted into set equivalents.
+	 * Returns the common elements of a and b.
 	 * 
-	 * @param a
-	 * @param b
+	 * @param entriesA
+	 * @param entriesB
 	 * @return
 	 */
-	public static <T> List<T> intersect(Collection<T> a, Collection<T> b) {
-		Set<T> hashedEntriesA = new HashSet<T>();
-		hashedEntriesA.addAll(a);
+	public static <T> List<T> intersect(Collection<T> entriesA,
+			Collection<T> entriesB) {
+		Set<T> cEntriesA = new TreeSet<T>();
+		cEntriesA.addAll(entriesA);
 
-		Set<T> result = new HashSet<T>();
-		for (T in : b)
-			if (hashedEntriesA.contains(in))
-				result.add(in);
-		return new ArrayList<T>(result);
+		List<T> result = new ArrayList<T>();
+		for (T b : entriesB) {
+			if (cEntriesA.contains(b)) {
+				cEntriesA.remove(b);
+				result.add(b);
+			}
+		}
+		return result;
 	}
 
 	/**
-	 * Returns the result of (a - b). Note: Result is not a mutli bag operation,
-	 * the input collections are converted into set equivalents.
+	 * Returns the result of (a - b).
 	 * 
 	 * @param entriesA
-	 * @param entiresB
+	 * @param entriesB
 	 * @return
 	 */
 	public static <T> List<T> minus(Collection<T> entriesA,
-			Collection<T> entiresB) {
-		Set<T> hashedEntriesB = new HashSet<T>();
-		hashedEntriesB.addAll(entiresB);
+			Collection<T> entriesB) {
+		Set<T> cEntriesB = new TreeSet<T>();
+		cEntriesB.addAll(entriesB);
 
-		Set<T> result = new HashSet<T>();
-		for (T a : entriesA)
-			if (!hashedEntriesB.contains(a))
+		List<T> result = new ArrayList<T>();
+		for (T a : entriesA) {
+			if (!cEntriesB.contains(a)) {
+				cEntriesB.remove(a);
 				result.add(a);
-		return new ArrayList<T>(result);
+			}
+		}
+		return result;
 	}
 
 	public static <K, V> ListMultimap<V, K> reverseMap(Map<K, V> input) {
