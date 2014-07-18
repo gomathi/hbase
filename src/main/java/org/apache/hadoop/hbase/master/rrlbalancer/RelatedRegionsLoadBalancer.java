@@ -336,7 +336,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * end all region servers will have size <= max.
 	 * 
 	 * This does not guarantee all servers have >= min regions though. Look at
-	 * {@link #balanceRegionServersToMinRegions(NavigableSet, int)}
+	 * {@link #balanceRegionServersToMinRegions(NavigableSet, int)} for bringing
+	 * all region servers to a limit of >= min.
 	 * 
 	 * @param serversByLoad
 	 * @param min
