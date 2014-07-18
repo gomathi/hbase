@@ -206,8 +206,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			}
 		}
 		if (snacrList.size() > 0)
-			defragmentRelatedRegionsHelper(beg, snacrList.size() - 1, result,
-					snacrList, clusterState);
+			totDefragRegions += defragmentRelatedRegionsHelper(beg,
+					snacrList.size() - 1, result, snacrList, clusterState);
 		LOG.info("Total no of defragmented related regions : "
 				+ totDefragRegions);
 		return result;

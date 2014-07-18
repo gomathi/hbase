@@ -26,12 +26,12 @@ class TableClusterMapping {
 	private final Map<Integer, String> clusterIdAndName = new HashMap<Integer, String>();
 	private final List<Set<String>> clusters = new ArrayList<Set<String>>();
 
-	public void addClusters(List<Set<String>> clusters) {
+	public synchronized void addClusters(List<Set<String>> clusters) {
 		for (Set<String> cluster : clusters)
 			addCluster(cluster);
 	}
 
-	public void addCluster(Set<String> cluster) {
+	public synchronized void addCluster(Set<String> cluster) {
 		Set<String> mCluster = new HashSet<String>(cluster);
 		clusters.add(mCluster);
 		String currClusterName = CLUSTER_PREFIX + clusters.size();
