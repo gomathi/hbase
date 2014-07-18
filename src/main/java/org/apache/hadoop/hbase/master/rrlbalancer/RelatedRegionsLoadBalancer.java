@@ -506,18 +506,20 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		int totReassignedCnt = 0;
 
-		List<ServerName> allUnavailServers = minus(regions.values(), servers);
+		Set<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Collection<List<HRegionInfo>> allClusteredRegionGroups = getValuesAsList(clusterRegions(regions
 				.keySet()));
 		Map<String, List<ServerName>> hostNameAndAvaServers = clusterServers(servers);
 
 		for (List<HRegionInfo> indClusteredRegionGroup : allClusteredRegionGroups) {
-			Map<HRegionInfo, ServerName> indClusteredRegionAndServerNameMap = getMapEntriesForKeys(
-					regions, indClusteredRegionGroup);
-			ListMultimap<ServerName, HRegionInfo> indServerNameAndClusteredRegions = reverseMap(indClusteredRegionAndServerNameMap);
+			ListMultimap<ServerName, HRegionInfo> indServerNameAndClusteredRegions = reverseMap(getMapEntriesForKeys(
+					regions, indClusteredRegionGroup));
 
-			List<ServerName> localUnavailServers = intersect(allUnavailServers,
-					indClusteredRegionAndServerNameMap.values());
+			Set<ServerName> localUnavailServers = intersect(allUnavailServers,
+					indServerNameAndClusteredRegions.keySet());
+			Set<ServerName> localAvailServers = minus(
+					indServerNameAndClusteredRegions.keySet(),
+					localUnavailServers);
 
 			String avaHostWithMajRegions = findAvailableHostWithMajorityRegions(
 					hostNameAndAvaServers.keySet(),
@@ -528,7 +530,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 			ServerName bestPlacementServer = (indServerNameAndClusteredRegions
 					.size() == localUnavailServers.size()) ? (serverToUse)
-					: findServerNameWithMajorityRegions(indServerNameAndClusteredRegions);
+					: findServerNameWithMajorityRegions(localAvailServers,
+							indServerNameAndClusteredRegions);
 
 			if (!result.containsKey(bestPlacementServer))
 				result.put(bestPlacementServer, new ArrayList<HRegionInfo>());
@@ -576,14 +579,17 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @return
 	 */
 	private ServerName findServerNameWithMajorityRegions(
+			Set<ServerName> availableServers,
 			ListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
 		ServerName result = null;
 		int maxRegionsCount = -1;
 		for (ServerName serverName : serverNameAndRegionsMap.keySet()) {
-			if (serverNameAndRegionsMap.get(serverName).size() > maxRegionsCount) {
-				maxRegionsCount = serverNameAndRegionsMap.get(serverName)
-						.size();
-				result = serverName;
+			if (availableServers.contains(serverName)) {
+				if (serverNameAndRegionsMap.get(serverName).size() > maxRegionsCount) {
+					maxRegionsCount = serverNameAndRegionsMap.get(serverName)
+							.size();
+					result = serverName;
+				}
 			}
 		}
 

@@ -63,13 +63,14 @@ public class Utils {
 	}
 
 	/**
-	 * Returns the common elements of a and b.
+	 * Returns the common elements of a and b. Result is not a multi bag
+	 * operation.
 	 * 
 	 * @param entriesA
 	 * @param entriesB
 	 * @return
 	 */
-	public static <T> List<T> intersect(Collection<T> entriesA,
+	public static <T> Set<T> intersect(Collection<T> entriesA,
 			Collection<T> entriesB) {
 		Set<T> cEntriesA = new TreeSet<T>();
 		cEntriesA.addAll(entriesA);
@@ -80,18 +81,18 @@ public class Utils {
 				result.add(b);
 			}
 		}
-		return new ArrayList<T>(result);
+		return result;
 	}
 
 	/**
-	 * Returns the result of (a - b). Result is not multi bag operation
+	 * Returns the result of (a - b). Result is not multi bag operation.
 	 * equivalent.
 	 * 
 	 * @param entriesA
 	 * @param entriesB
 	 * @return
 	 */
-	public static <T> List<T> minus(Collection<T> entriesA,
+	public static <T> Set<T> minus(Collection<T> entriesA,
 			Collection<T> entriesB) {
 		Set<T> cEntriesB = new TreeSet<T>();
 		cEntriesB.addAll(entriesB);
@@ -102,7 +103,7 @@ public class Utils {
 				result.add(a);
 			}
 		}
-		return new ArrayList<T>(result);
+		return result;
 	}
 
 	public static <K, V> ListMultimap<V, K> reverseMap(Map<K, V> input) {
