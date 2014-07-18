@@ -3,6 +3,7 @@ package org.apache.hadoop.hbase.master.rrlbalancer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -73,18 +74,18 @@ public class Utils {
 		Set<T> cEntriesA = new TreeSet<T>();
 		cEntriesA.addAll(entriesA);
 
-		List<T> result = new ArrayList<T>();
+		Set<T> result = new HashSet<T>();
 		for (T b : entriesB) {
 			if (cEntriesA.contains(b)) {
-				cEntriesA.remove(b);
 				result.add(b);
 			}
 		}
-		return result;
+		return new ArrayList<T>(result);
 	}
 
 	/**
-	 * Returns the result of (a - b).
+	 * Returns the result of (a - b). Result is not multi bag operation
+	 * equivalent.
 	 * 
 	 * @param entriesA
 	 * @param entriesB
@@ -95,14 +96,13 @@ public class Utils {
 		Set<T> cEntriesB = new TreeSet<T>();
 		cEntriesB.addAll(entriesB);
 
-		List<T> result = new ArrayList<T>();
+		Set<T> result = new HashSet<T>();
 		for (T a : entriesA) {
 			if (!cEntriesB.contains(a)) {
-				cEntriesB.remove(a);
 				result.add(a);
 			}
 		}
-		return result;
+		return new ArrayList<T>(result);
 	}
 
 	public static <K, V> ListMultimap<V, K> reverseMap(Map<K, V> input) {
@@ -126,5 +126,4 @@ public class Utils {
 		for (K key : input.keySet())
 			input.get(key).clear();
 	}
-
 }
