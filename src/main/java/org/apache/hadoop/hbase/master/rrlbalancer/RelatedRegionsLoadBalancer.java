@@ -524,12 +524,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			String avaHostWithMajRegions = findAvailableHostWithMajorityRegions(
 					hostNameAndAvaServers.keySet(),
 					indServerNameAndClusteredRegions);
-			ServerName serverToUse = (avaHostWithMajRegions == null) ? (randomAssignment(servers))
+			ServerName snToUseOnNoLocalAvaServers = (avaHostWithMajRegions == null) ? (randomAssignment(servers))
 					: randomAssignment(hostNameAndAvaServers
 							.get(avaHostWithMajRegions));
+			boolean isAnyLocalServerAvailable = indServerNameAndClusteredRegions
+					.size() == localUnavailServers.size();
 
-			ServerName bestPlacementServer = (indServerNameAndClusteredRegions
-					.size() == localUnavailServers.size()) ? (serverToUse)
+			ServerName bestPlacementServer = (isAnyLocalServerAvailable) ? (snToUseOnNoLocalAvaServers)
 					: findServerNameWithMajorityRegions(localAvailServers,
 							indServerNameAndClusteredRegions);
 
