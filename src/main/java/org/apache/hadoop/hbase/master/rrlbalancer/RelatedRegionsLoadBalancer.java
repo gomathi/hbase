@@ -145,7 +145,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		long endTime = System.currentTimeMillis();
 
-		LOG.info("Total time took for balancing cluster function: "
+		LOG.info("Total time took for preparing region plans: "
 				+ (endTime - startTime) + " ms");
 		return result;
 	}
