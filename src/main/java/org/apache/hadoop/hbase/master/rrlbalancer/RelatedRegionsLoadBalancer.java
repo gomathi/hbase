@@ -301,7 +301,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				|| maxRegions == 1) {
 			// Skipped because no server outside (min,max) range
 			LOG.info("Cluster is balanced. Skipping further operations.");
-			return Collections.emptyMap();
+			return new HashMap<HRegionInfo, RegionPlan>();
 		}
 
 		int min = (numRegions / numServers);
@@ -641,13 +641,12 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param regions
 	 * @return
 	 */
-	private Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
+	Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
 			Collection<HRegionInfo> regions) {
 		return cluster(regions, regionKeyGener);
 	}
 
-	private Map<String, List<ServerName>> clusterServers(
-			Collection<ServerName> servers) {
+	Map<String, List<ServerName>> clusterServers(Collection<ServerName> servers) {
 		return cluster(servers, hostKeyGener);
 	}
 

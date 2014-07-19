@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -128,12 +131,11 @@ public class TestRelatedRegionsLoadBalancer {
 
 		for (int[] mockCluster : clusterStateMocks) {
 			Map<ServerName, List<HRegionInfo>> servers = mockClusterServers(mockCluster);
-			List<ServerAndLoad> list = convertToList(servers);
+			List<TestServerAndLoad> list = convertToList(servers);
 			LOG.info("Mock Cluster : " + printMock(list) + " "
 					+ printStats(list));
 			List<RegionPlan> plans = loadBalancer.balanceCluster(servers);
-			List<ServerAndLoad> balancedCluster = reconcile(
-					list, plans);
+			List<TestServerAndLoad> balancedCluster = reconcile(list, plans);
 			LOG.info("Mock Balance : " + printMock(balancedCluster));
 			assertClusterAsBalanced(balancedCluster);
 			for (Map.Entry<ServerName, List<HRegionInfo>> entry : servers
@@ -149,13 +151,12 @@ public class TestRelatedRegionsLoadBalancer {
 	 * Invariant is that all servers have between floor(avg) and ceiling(avg)
 	 * number of regions.
 	 */
-	public void assertClusterAsBalanced(
-			List<ServerAndLoad> servers) {
+	public void assertClusterAsBalanced(List<TestServerAndLoad> servers) {
 		int numServers = servers.size();
 		int numRegions = 0;
 		int maxRegions = 0;
 		int minRegions = Integer.MAX_VALUE;
-		for (ServerAndLoad server : servers) {
+		for (TestServerAndLoad server : servers) {
 			int nr = server.getLoad();
 			if (nr > maxRegions) {
 				maxRegions = nr;
@@ -172,7 +173,7 @@ public class TestRelatedRegionsLoadBalancer {
 		int min = numRegions / numServers;
 		int max = numRegions % numServers == 0 ? min : min + 1;
 
-		for (ServerAndLoad server : servers) {
+		for (TestServerAndLoad server : servers) {
 			assertTrue(server.getLoad() <= max);
 			assertTrue(server.getLoad() >= min);
 		}
@@ -191,8 +192,7 @@ public class TestRelatedRegionsLoadBalancer {
 			LOG.debug("testImmediateAssignment with " + mock[0]
 					+ " regions and " + mock[1] + " servers");
 			List<HRegionInfo> regions = randomRegions(mock[0]);
-			List<ServerAndLoad> servers = randomServers(mock[1],
-					0);
+			List<TestServerAndLoad> servers = randomServers(mock[1], 0);
 			List<ServerName> list = getListOfServerNames(servers);
 			Map<HRegionInfo, ServerName> assignments = loadBalancer
 					.immediateAssignment(regions, list);
@@ -231,8 +231,7 @@ public class TestRelatedRegionsLoadBalancer {
 			LOG.debug("testBulkAssignment with " + mock[0] + " regions and "
 					+ mock[1] + " servers");
 			List<HRegionInfo> regions = randomRegions(mock[0]);
-			List<ServerAndLoad> servers = randomServers(mock[1],
-					0);
+			List<TestServerAndLoad> servers = randomServers(mock[1], 0);
 			List<ServerName> list = getListOfServerNames(servers);
 			Map<ServerName, List<HRegionInfo>> assignments = loadBalancer
 					.roundRobinAssignment(regions, list);
@@ -259,7 +258,7 @@ public class TestRelatedRegionsLoadBalancer {
 	@Test
 	public void testRetainAssignment() throws Exception {
 		// Test simple case where all same servers are there
-		List<ServerAndLoad> servers = randomServers(10, 10);
+		List<TestServerAndLoad> servers = randomServers(10, 10);
 		List<HRegionInfo> regions = randomRegions(100);
 		Map<HRegionInfo, ServerName> existing = new TreeMap<HRegionInfo, ServerName>();
 		for (int i = 0; i < regions.size(); i++) {
@@ -276,7 +275,7 @@ public class TestRelatedRegionsLoadBalancer {
 		assertRetainedAssignment(existing, listOfServerNames, assignment);
 
 		// Include two new servers that were not there before
-		List<ServerAndLoad> servers2 = new ArrayList<ServerAndLoad>(
+		List<TestServerAndLoad> servers2 = new ArrayList<TestServerAndLoad>(
 				servers);
 		servers2.add(randomServer(10));
 		servers2.add(randomServer(10));
@@ -285,7 +284,7 @@ public class TestRelatedRegionsLoadBalancer {
 		assertRetainedAssignment(existing, listOfServerNames, assignment);
 
 		// Remove two of the servers that were previously there
-		List<ServerAndLoad> servers3 = new ArrayList<ServerAndLoad>(
+		List<TestServerAndLoad> servers3 = new ArrayList<TestServerAndLoad>(
 				servers);
 		servers3.remove(0);
 		servers3.remove(0);
@@ -295,9 +294,9 @@ public class TestRelatedRegionsLoadBalancer {
 	}
 
 	private List<ServerName> getListOfServerNames(
-			final List<ServerAndLoad> sals) {
+			final List<TestServerAndLoad> sals) {
 		List<ServerName> list = new ArrayList<ServerName>();
-		for (ServerAndLoad e : sals) {
+		for (TestServerAndLoad e : sals) {
 			list.add(e.getServerName());
 		}
 		return list;
@@ -355,10 +354,10 @@ public class TestRelatedRegionsLoadBalancer {
 		}
 	}
 
-	private String printStats(List<ServerAndLoad> servers) {
+	private String printStats(List<TestServerAndLoad> servers) {
 		int numServers = servers.size();
 		int totalRegions = 0;
-		for (ServerAndLoad server : servers) {
+		for (TestServerAndLoad server : servers) {
 			totalRegions += server.getLoad();
 		}
 		float average = (float) totalRegions / numServers;
@@ -368,21 +367,21 @@ public class TestRelatedRegionsLoadBalancer {
 				+ average + " max=" + max + " min=" + min + "]";
 	}
 
-	private List<ServerAndLoad> convertToList(
+	private List<TestServerAndLoad> convertToList(
 			final Map<ServerName, List<HRegionInfo>> servers) {
-		List<ServerAndLoad> list = new ArrayList<ServerAndLoad>(
+		List<TestServerAndLoad> list = new ArrayList<TestServerAndLoad>(
 				servers.size());
 		for (Map.Entry<ServerName, List<HRegionInfo>> e : servers.entrySet()) {
-			list.add(new ServerAndLoad(e.getKey(), e.getValue().size()));
+			list.add(new TestServerAndLoad(e.getKey(), e.getValue().size()));
 		}
 		return list;
 	}
 
-	private String printMock(List<ServerAndLoad> balancedCluster) {
-		SortedSet<ServerAndLoad> sorted = new TreeSet<ServerAndLoad>(
+	private String printMock(List<TestServerAndLoad> balancedCluster) {
+		SortedSet<TestServerAndLoad> sorted = new TreeSet<TestServerAndLoad>(
 				balancedCluster);
-		ServerAndLoad[] arr = sorted
-				.toArray(new ServerAndLoad[sorted.size()]);
+		TestServerAndLoad[] arr = sorted.toArray(new TestServerAndLoad[sorted
+				.size()]);
 		StringBuilder sb = new StringBuilder(sorted.size() * 4 + 4);
 		sb.append("{ ");
 		for (int i = 0; i < arr.length; i++) {
@@ -403,13 +402,13 @@ public class TestRelatedRegionsLoadBalancer {
 	 * @param plans
 	 * @return
 	 */
-	private List<ServerAndLoad> reconcile(
-			List<ServerAndLoad> list, List<RegionPlan> plans) {
-		List<ServerAndLoad> result = new ArrayList<ServerAndLoad>(
+	private List<TestServerAndLoad> reconcile(List<TestServerAndLoad> list,
+			List<RegionPlan> plans) {
+		List<TestServerAndLoad> result = new ArrayList<TestServerAndLoad>(
 				list.size());
 		if (plans == null)
 			return result;
-		Map<ServerName, ServerAndLoad> map = new HashMap<ServerName, ServerAndLoad>(
+		Map<ServerName, TestServerAndLoad> map = new HashMap<ServerName, TestServerAndLoad>(
 				list.size());
 		for (RegionPlan plan : plans) {
 			ServerName source = plan.getSource();
@@ -422,12 +421,12 @@ public class TestRelatedRegionsLoadBalancer {
 		return result;
 	}
 
-	private void updateLoad(Map<ServerName, ServerAndLoad> map,
+	private void updateLoad(Map<ServerName, TestServerAndLoad> map,
 			final ServerName sn, final int diff) {
-		ServerAndLoad sal = map.get(sn);
+		TestServerAndLoad sal = map.get(sn);
 		if (sal == null)
 			return;
-		sal = new ServerAndLoad(sn, sal.getLoad() + diff);
+		sal = new TestServerAndLoad(sn, sal.getLoad() + diff);
 		map.put(sn, sal);
 	}
 
@@ -437,7 +436,7 @@ public class TestRelatedRegionsLoadBalancer {
 		Map<ServerName, List<HRegionInfo>> servers = new TreeMap<ServerName, List<HRegionInfo>>();
 		for (int i = 0; i < numServers; i++) {
 			int numRegions = mockCluster[i];
-			ServerAndLoad sal = randomServer(0);
+			TestServerAndLoad sal = randomServer(0);
 			List<HRegionInfo> regions = randomRegions(numRegions);
 			servers.put(sal.getServerName(), regions);
 		}
@@ -473,22 +472,21 @@ public class TestRelatedRegionsLoadBalancer {
 
 	private Queue<ServerName> serverQueue = new LinkedList<ServerName>();
 
-	private ServerAndLoad randomServer(
-			final int numRegionsPerServer) {
+	private TestServerAndLoad randomServer(final int numRegionsPerServer) {
 		if (!this.serverQueue.isEmpty()) {
 			ServerName sn = this.serverQueue.poll();
-			return new ServerAndLoad(sn, numRegionsPerServer);
+			return new TestServerAndLoad(sn, numRegionsPerServer);
 		}
 		String host = "server" + rand.nextInt(100000);
 		int port = rand.nextInt(60000);
 		long startCode = rand.nextLong();
 		ServerName sn = new ServerName(host, port, startCode);
-		return new ServerAndLoad(sn, numRegionsPerServer);
+		return new TestServerAndLoad(sn, numRegionsPerServer);
 	}
 
-	private List<ServerAndLoad> randomServers(int numServers,
+	private List<TestServerAndLoad> randomServers(int numServers,
 			int numRegionsPerServer) {
-		List<ServerAndLoad> servers = new ArrayList<ServerAndLoad>(
+		List<TestServerAndLoad> servers = new ArrayList<TestServerAndLoad>(
 				numServers);
 		for (int i = 0; i < numServers; i++) {
 			servers.add(randomServer(numRegionsPerServer));
@@ -506,4 +504,160 @@ public class TestRelatedRegionsLoadBalancer {
 
 	@org.junit.Rule
 	public org.apache.hadoop.hbase.ResourceCheckerJUnitRule cu = new org.apache.hadoop.hbase.ResourceCheckerJUnitRule();
+
+	// Related regions load balancer test cases
+
+	private static final List<String> regionKeys = new ArrayList<String>();
+
+	static {
+		for (int i = 'a'; i <= 'z'; i++)
+			regionKeys.add(String.valueOf((char) i));
+		int ind = 0;
+		for (int j = 0; j < 2; j++) {
+			for (int i = 'a'; i <= 'z'; i++) {
+				regionKeys.add(regionKeys.get(ind) + (char) i);
+				ind++;
+			}
+		}
+		Collections.sort(regionKeys);
+	}
+
+	private static final int[][] rrlInput = new int[][] {
+			new int[] { 1, 1, 1, 1 }, new int[] { 4, 2, 2, 2 } };
+
+	@Test
+	public void testBalanceClusterRRL() {
+		for (int[] rrlIndTestInput : rrlInput) {
+
+			int noOfRegionsPerTable = rrlIndTestInput[0];
+			int noOfTables = rrlIndTestInput[1];
+			int noOfServersToAssign = rrlIndTestInput[2];
+			int totNoOfServers = rrlIndTestInput[3];
+			int noOfAddServers = totNoOfServers - noOfServersToAssign;
+			int totRegions = (noOfRegionsPerTable * noOfTables);
+			int noOfRegionsPerServer = (totRegions / noOfServersToAssign)
+					+ ((totRegions % noOfServersToAssign) == 0 ? 0 : 1);
+
+			Set<String> relatedTables = new HashSet<String>();
+			List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+			relatedTablesList.add(relatedTables);
+
+			List<HRegionInfo> hregionsList = genRandomRegions(
+					noOfRegionsPerTable, noOfTables, relatedTables);
+			List<TestServerAndLoad> serversList = randomServers(
+					noOfServersToAssign, noOfRegionsPerServer);
+			Map<ServerName, List<HRegionInfo>> input = randomlyAssign(
+					hregionsList, serversList);
+			if (noOfAddServers > 0) {
+				List<TestServerAndLoad> additionalServers = randomServers(
+						noOfAddServers, 0);
+				for (TestServerAndLoad tsal : additionalServers) {
+					input.put(tsal.getServerName(),
+							new ArrayList<HRegionInfo>());
+				}
+			}
+
+			Map<ServerName, List<HRegionInfo>> cInput = new HashMap<ServerName, List<HRegionInfo>>(
+					input);
+			RelatedRegionsLoadBalancer load = new RelatedRegionsLoadBalancer(
+					relatedTablesList);
+			List<RegionPlan> rplansList = load.balanceCluster(input);
+			int min = noOfRegionsPerTable / totNoOfServers;
+			int max = (noOfRegionsPerTable % totNoOfServers) == 0 ? min
+					: (min + 1);
+			assertTestBalanceClusterRRL(rplansList, cInput, load, noOfTables,
+					min, max);
+		}
+	}
+
+	private void assertTestBalanceClusterRRL(List<RegionPlan> rplansList,
+			Map<ServerName, List<HRegionInfo>> input,
+			RelatedRegionsLoadBalancer loadBal, int noOfRegions, int minRegCnt,
+			int maxRegCnt) {
+		Map<ServerName, List<HRegionInfo>> result = convertRegionPlanToResult(
+				rplansList, input);
+		for (List<HRegionInfo> list : result.values()) {
+			List<List<HRegionInfo>> clusteredRegions = Utils
+					.getValuesAsList(loadBal.clusterRegions(list));
+			assertTrue(clusteredRegions.size() >= minRegCnt
+					&& clusteredRegions.size() <= maxRegCnt);
+			for (List<HRegionInfo> cluster : clusteredRegions)
+				assertEquals(noOfRegions, cluster.size());
+		}
+	}
+
+	private static Map<ServerName, List<HRegionInfo>> convertRegionPlanToResult(
+			List<RegionPlan> rplansList,
+			Map<ServerName, List<HRegionInfo>> input) {
+		Map<ServerName, List<HRegionInfo>> result = new HashMap<ServerName, List<HRegionInfo>>();
+		for (RegionPlan rp : rplansList) {
+			if (!result.containsKey(rp.getDestination()))
+				result.put(rp.getDestination(), new ArrayList<HRegionInfo>());
+			result.get(rp.getDestination()).add(rp.getRegionInfo());
+		}
+
+		Set<HRegionInfo> hriList = new HashSet<HRegionInfo>();
+		for (RegionPlan rp : rplansList)
+			hriList.add(rp.getRegionInfo());
+
+		for (Map.Entry<ServerName, List<HRegionInfo>> entry : input.entrySet()) {
+			for (HRegionInfo hri : entry.getValue())
+				if (!hriList.contains(hri)) {
+					if (!result.containsKey(entry.getKey()))
+						result.put(entry.getKey(), new ArrayList<HRegionInfo>());
+					result.get(entry.getKey()).add(hri);
+				}
+
+		}
+
+		return result;
+	}
+
+	private Map<ServerName, List<HRegionInfo>> randomlyAssign(
+			List<HRegionInfo> regions, List<TestServerAndLoad> servers) {
+		Map<ServerName, List<HRegionInfo>> result = new HashMap<ServerName, List<HRegionInfo>>();
+		for (TestServerAndLoad tsl : servers)
+			result.put(tsl.getServerName(), new ArrayList<HRegionInfo>());
+
+		int random;
+		Iterator<TestServerAndLoad> itr = servers.iterator();
+		TestServerAndLoad currServerName = itr.next();
+		int currServerLoad = currServerName.getLoad();
+		for (int i = regions.size() - 1; i >= 0; i--) {
+			random = rand.nextInt(i + 1);
+			HRegionInfo randomHri = regions.get(random);
+			HRegionInfo currHri = regions.remove(i);
+			regions.add(random, currHri);
+			if (currServerLoad == 0) {
+				if (itr.hasNext()) {
+					currServerName = itr.next();
+					currServerLoad = currServerName.getLoad();
+				} else
+					break;
+			}
+			currServerLoad--;
+			result.get(currServerName.getServerName()).add(randomHri);
+		}
+
+		return result;
+	}
+
+	private List<HRegionInfo> genRandomRegions(int numRegions, int noTables,
+			Set<String> relatedTables) {
+		for (int j = 0; j < noTables; j++)
+			relatedTables.add("Table" + j);
+		int ind = 0;
+		List<HRegionInfo> result = new ArrayList<HRegionInfo>();
+		for (int i = 0; i < numRegions; i++) {
+			byte[] startKey = Bytes.toBytes(regionKeys.get(ind++));
+			byte[] endKey = Bytes.toBytes(regionKeys.get(ind++));
+
+			for (String tableName : relatedTables) {
+				HRegionInfo hri = new HRegionInfo(Bytes.toBytes(tableName),
+						startKey, endKey);
+				result.add(hri);
+			}
+		}
+		return result;
+	}
 }

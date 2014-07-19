@@ -6,11 +6,11 @@ import org.apache.hadoop.hbase.ServerName;
 /**
  * Data structure that holds servername and 'load'.
  */
-class ServerAndLoad implements Comparable<ServerAndLoad> {
+class TestServerAndLoad implements Comparable<TestServerAndLoad> {
   private final ServerName sn;
   private final int load;
 
-  ServerAndLoad(final ServerName sn, final int load) {
+  TestServerAndLoad(final ServerName sn, final int load) {
     this.sn = sn;
     this.load = load;
   }
@@ -24,7 +24,7 @@ class ServerAndLoad implements Comparable<ServerAndLoad> {
   }
 
   @Override
-  public int compareTo(ServerAndLoad other) {
+  public int compareTo(TestServerAndLoad other) {
     int diff = this.load - other.load;
     return diff != 0 ? diff : this.sn.compareTo(other.getServerName());
   }

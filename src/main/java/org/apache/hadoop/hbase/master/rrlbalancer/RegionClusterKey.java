@@ -10,8 +10,8 @@ import org.apache.hadoop.hbase.util.Bytes;
  * 
  */
 class RegionClusterKey implements Comparable<RegionClusterKey> {
-	private final byte[] startKey, endKey;
-	private final String clusterName;
+	public final byte[] startKey, endKey;
+	public final String clusterName;
 
 	public RegionClusterKey(String clusterName, byte[] startKey, byte[] endKey) {
 		this.startKey = startKey;
