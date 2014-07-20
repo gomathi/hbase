@@ -34,7 +34,10 @@ import org.junit.experimental.categories.Category;
 
 /**
  * NOTE: This code is copied from HBase#TestDefaultLoadBalancer class, and have
- * been modified to test {@link RelatedRegionsLoadBalancer}
+ * been modified to test {@link RelatedRegionsLoadBalancer}, and also has few
+ * extra test cases to test RRL balancer specifically.
+ * 
+ * Start at #testAlreadyBalancedClusterRRL to review the code.
  */
 @Category(MediumTests.class)
 public class TestRelatedRegionsLoadBalancer {
