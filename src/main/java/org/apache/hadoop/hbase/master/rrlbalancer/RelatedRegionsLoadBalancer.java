@@ -147,8 +147,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		long endTime = System.currentTimeMillis();
 
-		LOG.info("Total time took for preparing region plans: "
-				+ (endTime - startTime) + " ms");
+		LOG.info("Total time took for preparing region plans (in ms): "
+				+ (endTime - startTime));
 		return result;
 	}
 
@@ -535,10 +535,10 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			ServerName snToUseOnNoLocalAvaServers = (avaHostWithMajRegions == null) ? (randomAssignment(servers))
 					: randomAssignment(hostNameAndAvaServers
 							.get(avaHostWithMajRegions));
-			boolean isAnyLocalServerAvailable = indServerNameAndClusteredRegions
+			boolean isNoLocalServerAvailable = indServerNameAndClusteredRegions
 					.size() == localUnavailServers.size();
 
-			ServerName bestPlacementServer = (isAnyLocalServerAvailable) ? (snToUseOnNoLocalAvaServers)
+			ServerName bestPlacementServer = (isNoLocalServerAvailable) ? (snToUseOnNoLocalAvaServers)
 					: findServerNameWithMajorityRegions(localAvailServers,
 							indServerNameAndClusteredRegions);
 

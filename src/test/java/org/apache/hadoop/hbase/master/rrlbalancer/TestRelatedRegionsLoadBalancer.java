@@ -530,7 +530,8 @@ public class TestRelatedRegionsLoadBalancer {
 	// t -> total no of servers
 	private static final int[][] rrlInput = new int[][] {
 			new int[] { 1, 1, 1, 1 }, new int[] { 4, 2, 2, 2 },
-			new int[] { 4, 2, 2, 4 }, new int[] { 1000, 6, 10, 20 } };
+			new int[] { 4, 2, 2, 4 }, new int[] { 4, 2, 2, 10 },
+			new int[] { 1000, 6, 10, 20 } };
 
 	@Test
 	public void testAlreadyBalancedClusterRRL() {
@@ -555,14 +556,53 @@ public class TestRelatedRegionsLoadBalancer {
 		Set<String> relatedTables = new HashSet<String>();
 		relatedTablesList.add(relatedTables);
 		List<HRegionInfo> regions = genRegions(4, 2, relatedTables);
-		List<TestServerAndLoad> servers = randomServers(2, 4);
+		List<TestServerAndLoad> servers = randomServers(2, 0);
 		List<ServerName> serverNames = new ArrayList<ServerName>();
-		for(TestServerAndLoad tsal : servers)
+		for (TestServerAndLoad tsal : servers)
 			serverNames.add(tsal.getServerName());
 
 		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
 				relatedTablesList);
-		loadBal.immediateAssignment(regions, serverNames);
+		Map<HRegionInfo, ServerName> result = loadBal.immediateAssignment(
+				regions, serverNames);
+
+		assertEquals(8, result.size());
+		List<List<HRegionInfo>> clusteredRegions = Utils
+				.getValuesAsList(loadBal.clusterRegions(result.keySet()));
+
+		for (List<HRegionInfo> cluster : clusteredRegions) {
+			if (cluster.size() > 0) {
+				ServerName sn = result.get(cluster.get(0));
+				for (HRegionInfo hri : cluster) {
+					assertEquals(sn, result.get(hri));
+				}
+			}
+		}
+	}
+
+	@Test
+	public void testRoundRobinAssignmentRRL() {
+		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+		Set<String> relatedTables = new HashSet<String>();
+		relatedTablesList.add(relatedTables);
+		List<HRegionInfo> regions = genRegions(4, 2, relatedTables);
+		List<TestServerAndLoad> servers = randomServers(2, 0);
+		List<ServerName> serverNames = new ArrayList<ServerName>();
+		for (TestServerAndLoad tsal : servers)
+			serverNames.add(tsal.getServerName());
+
+		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
+				relatedTablesList);
+
+		Map<ServerName, List<HRegionInfo>> result = loadBal
+				.roundRobinAssignment(regions, serverNames);
+		assertEquals(2, result.size());
+		for (Map.Entry<ServerName, List<HRegionInfo>> entry : result.entrySet()) {
+			List<List<HRegionInfo>> clusteredRegions = Utils
+					.getValuesAsList(loadBal.clusterRegions(entry.getValue()));
+			for (List<HRegionInfo> cluster : clusteredRegions)
+				assertEquals(2, cluster.size());
+		}
 	}
 
 	@Test
