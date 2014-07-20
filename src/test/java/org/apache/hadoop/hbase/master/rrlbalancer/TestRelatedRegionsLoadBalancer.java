@@ -534,7 +534,7 @@ public class TestRelatedRegionsLoadBalancer {
 	private static final int[][] rrlInput = new int[][] {
 			new int[] { 1, 1, 1, 1 }, new int[] { 4, 2, 2, 2 },
 			new int[] { 4, 2, 2, 4 }, new int[] { 4, 2, 2, 10 },
-			new int[] { 1000, 6, 10, 20 } };
+			new int[] { 1000, 6, 10, 20 }, new int[] { 1000, 6, 10, 17 } };
 
 	@Test
 	public void testAlreadyBalancedClusterRRL() {
