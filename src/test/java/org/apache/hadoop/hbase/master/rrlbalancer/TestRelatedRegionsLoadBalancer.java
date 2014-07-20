@@ -522,7 +522,7 @@ public class TestRelatedRegionsLoadBalancer {
 		Collections.sort(regionKeys);
 	}
 
-	// int[testcase](input[] -> [])
+	// int[testcase]([])
 	// each input [r,t,a,ts]
 	// r -> no of regions per table
 	// t -> no of tables
@@ -533,8 +533,36 @@ public class TestRelatedRegionsLoadBalancer {
 			new int[] { 4, 2, 2, 4 }, new int[] { 1000, 6, 10, 20 } };
 
 	@Test
-	public void testAlreadyBalancedCluster() {
+	public void testAlreadyBalancedClusterRRL() {
+		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+		Set<String> relatedTables = new HashSet<String>();
+		relatedTablesList.add(relatedTables);
+		List<HRegionInfo> regions = genRegions(4, 2, relatedTables);
+		List<TestServerAndLoad> servers = randomServers(2, 4);
 
+		Map<ServerName, List<HRegionInfo>> input = assignServersToRegions(
+				regions, servers, false);
+
+		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
+				relatedTablesList);
+		List<RegionPlan> result = loadBal.balanceCluster(input);
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	public void testImmediateAssignmentRRL() {
+		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+		Set<String> relatedTables = new HashSet<String>();
+		relatedTablesList.add(relatedTables);
+		List<HRegionInfo> regions = genRegions(4, 2, relatedTables);
+		List<TestServerAndLoad> servers = randomServers(2, 4);
+		List<ServerName> serverNames = new ArrayList<ServerName>();
+		for(TestServerAndLoad tsal : servers)
+			serverNames.add(tsal.getServerName());
+
+		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
+				relatedTablesList);
+		loadBal.immediateAssignment(regions, serverNames);
 	}
 
 	@Test
@@ -554,8 +582,8 @@ public class TestRelatedRegionsLoadBalancer {
 			List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
 			relatedTablesList.add(relatedTables);
 
-			List<HRegionInfo> hregionsList = genRandomRegions(
-					noOfRegionsPerTable, noOfTables, relatedTables);
+			List<HRegionInfo> hregionsList = genRegions(noOfRegionsPerTable,
+					noOfTables, relatedTables);
 			List<TestServerAndLoad> serversList = randomServers(
 					noOfServersToAssign, noOfRegionsPerServer);
 			Map<ServerName, List<HRegionInfo>> input = assignServersToRegions(
@@ -584,7 +612,7 @@ public class TestRelatedRegionsLoadBalancer {
 
 	private void assertTestBalanceClusterRRL(List<RegionPlan> rplansList,
 			Map<ServerName, List<HRegionInfo>> input,
-			RelatedRegionsLoadBalancer loadBal, int noOfTables, int minRegCnt,
+			RelatedRegionsLoadBalancer loadBal, int clusterSize, int minRegCnt,
 			int maxRegCnt) {
 		Map<ServerName, List<HRegionInfo>> result = convertRegionPlanToResult(
 				rplansList, input);
@@ -594,7 +622,7 @@ public class TestRelatedRegionsLoadBalancer {
 			assertTrue(clusteredRegions.size() >= minRegCnt
 					&& clusteredRegions.size() <= maxRegCnt);
 			for (List<HRegionInfo> cluster : clusteredRegions)
-				assertEquals(noOfTables, cluster.size());
+				assertEquals(clusterSize, cluster.size());
 		}
 	}
 
@@ -652,7 +680,7 @@ public class TestRelatedRegionsLoadBalancer {
 		return result;
 	}
 
-	private List<HRegionInfo> genRandomRegions(int numRegions, int noTables,
+	private List<HRegionInfo> genRegions(int numRegions, int noTables,
 			Set<String> relatedTables) {
 		for (int j = 0; j < noTables; j++)
 			relatedTables.add("Table" + j);

@@ -125,6 +125,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 
 		long startTime = System.currentTimeMillis();
 
+		LOG.info("Balance cluster triggered: ");
+
 		// We dont want to move around meta regions between region servers.
 		for (ServerName serverName : clusterState.keySet()) {
 			List<HRegionInfo> regions = clusterState.get(serverName);
@@ -167,7 +169,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * <li>S1 hosts [A,B] and S2 hosts [X,Y]
 	 * 
 	 * <li>Expected Output
-	 * <li>S1 | S2 should host [A,X] and S1 | S2 should host [B,Y]
+	 * <li>(S1 or S2) should only host [A,X] and, (S1 or S2) should host [B,Y]
 	 * 
 	 * <li>Algorithm
 	 * <li>Cluster all regions of each server, and put the clusters into a
@@ -187,6 +189,9 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<HRegionInfo, RegionPlan> defragmentRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
+		long startTime = System.currentTimeMillis();
+		LOG.info("Defragmentation triggered : ");
 
 		int totDefragRegions = 0;
 
@@ -221,8 +226,11 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		if (snacrList.size() > 0)
 			totDefragRegions += defragmentRelatedRegionsHelper(beg,
 					snacrList.size() - 1, result, snacrList, clusterState);
+		long endTime = System.currentTimeMillis();
 		LOG.info("Total no of defragmented related regions : "
 				+ totDefragRegions);
+		LOG.info("Total time took for defragmentation (in ms):"
+				+ (endTime - startTime));
 		return result;
 	}
 
