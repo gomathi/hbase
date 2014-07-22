@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.ServerName;
-import org.apache.hadoop.hbase.util.Bytes;
 
 /**
  * Used by
@@ -20,9 +19,6 @@ class ServerNameAndClusteredRegions {
 	private final RegionClusterKey regionClusterKey;
 	private final List<HRegionInfo> clusteredRegions;
 	private final int clusterSize;
-	private final String startkey;
-	private final String endKey;
-	private final String tableName;
 
 	public ServerNameAndClusteredRegions(ServerName serverName,
 			RegionClusterKey regionClusterKey,
@@ -31,9 +27,6 @@ class ServerNameAndClusteredRegions {
 		this.regionClusterKey = regionClusterKey;
 		this.clusteredRegions = clusteredRegions;
 		clusterSize = clusteredRegions.size();
-		this.startkey = Bytes.toString(regionClusterKey.startKey);
-		this.endKey = Bytes.toString(regionClusterKey.endKey);
-		tableName = regionClusterKey.clusterName;
 	}
 
 	/**

@@ -52,6 +52,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
 
 	private final TableClusterMapping tableToClusterMapObj = new TableClusterMapping();
+	private final Map<String, Integer> hostNameAndWeight = new HashMap<String, Integer>();
+	private final Object hostNameAndWeightLock = new Object();
 	private float slop;
 	private Configuration conf;
 
@@ -84,6 +86,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 					+ " to cluster mapping.");
 			tableToClusterMapObj.addClusters(clusteredTableNamesList);
 		}
+	}
+
+	public RelatedRegionsLoadBalancer(
+			List<Set<String>> clusteredTableNamesList,
+			Map<String, Integer> hostNameAndWeight) {
+		this(clusteredTableNamesList);
+		updateHostNameAndWeight(hostNameAndWeight);
 	}
 
 	@Override
@@ -138,6 +147,10 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		// related regions are fragmented across region servers.
 		Map<HRegionInfo, RegionPlan> movRelRegionsResult = defragmentRelatedRegions(clusterState);
 
+		// Adds virtual servers to the cluster state if some physical hosts are
+		// more capable of other hosts.
+		Map<ServerName, ServerName> virtServToPhyServ = doWeightedBalancing(clusterState);
+
 		// Lets balance related regions size across all the region servers.
 		Map<HRegionInfo, RegionPlan> balanceRelRegionsResult = balanceRelatedRegions(clusterState);
 
@@ -145,11 +158,96 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		List<RegionPlan> result = getValues(merge(movRelRegionsResult,
 				balanceRelRegionsResult));
 
+		// Remove virtual servers, and prepare region plans with original
+		// physical
+		// servers.
+		result = removeVirtualServers(result, virtServToPhyServ);
+
 		long endTime = System.currentTimeMillis();
 
 		LOG.info("Total time took for preparing region plans (in ms): "
 				+ (endTime - startTime));
 		return result;
+	}
+
+	private void updateHostNameAndWeight(
+			Map<String, Integer> newHostNameAndWeight) {
+		synchronized (hostNameAndWeightLock) {
+			hostNameAndWeight.clear();
+			hostNameAndWeight.putAll(newHostNameAndWeight);
+		}
+	}
+
+	public Map<String, Integer> getHostNameAndWeight() {
+		Map<String, Integer> result = new HashMap<String, Integer>();
+		synchronized (hostNameAndWeightLock) {
+			result.putAll(hostNameAndWeight);
+		}
+		return result;
+	}
+
+	private List<RegionPlan> removeVirtualServers(List<RegionPlan> result,
+			Map<ServerName, ServerName> virtServToPhyServ) {
+		// TODO Auto-generated method stub
+		for (RegionPlan rp : result) {
+			if (virtServToPhyServ.containsKey(rp.getDestination())) {
+				ServerName dest = virtServToPhyServ.get(rp.getDestination());
+				rp.setDestination(dest);
+			}
+		}
+		return result;
+	}
+
+	private Map<ServerName, ServerName> doWeightedBalancing(
+			Map<ServerName, List<HRegionInfo>> clusterState) {
+		// TODO Auto-generated method stub
+		Map<ServerName, ServerName> virtServToPhyServ = addVirtualServers(clusterState
+				.keySet());
+		for (ServerName virtServer : virtServToPhyServ.keySet())
+			clusterState.put(virtServer, new ArrayList<HRegionInfo>());
+		return virtServToPhyServ;
+	}
+
+	private Map<ServerName, ServerName> addVirtualServers(
+			Set<ServerName> phyServers) {
+		// TODO Auto-generated method stub
+		Map<String, List<ServerName>> clusteredServers = clusterServers(phyServers);
+		Map<ServerName, ServerName> virtServToPhyServ = new HashMap<ServerName, ServerName>();
+		for (Map.Entry<String, List<ServerName>> entry : clusteredServers
+				.entrySet()) {
+			if (hostNameAndWeight.containsKey(entry.getKey())) {
+				int weight = hostNameAndWeight.get(entry.getKey()) - 1;
+				int noOfVirtsPerRS = (weight % entry.getValue().size()) == 0 ? (weight / entry
+						.getValue().size()) : ((weight / entry.getValue()
+						.size()) + 1);
+				Iterator<ServerName> serverItr = entry.getValue().iterator();
+				while (weight > 0) {
+					int min = Math.min(weight, noOfVirtsPerRS);
+					ServerName phyServer = serverItr.next();
+					for (int i = 1; i <= min; i++) {
+						ServerName virtServer = null;
+						while (true) {
+							virtServer = randomServer();
+							if (!phyServers.contains(virtServer)
+									&& !virtServToPhyServ
+											.containsKey(virtServer))
+								break;
+						}
+						virtServToPhyServ.put(virtServer, phyServer);
+					}
+					weight -= min;
+				}
+			}
+		}
+		return virtServToPhyServ;
+	}
+
+	private ServerName randomServer() {
+		// TODO Auto-generated method stub
+		String serverName = "server" + RANDOM.nextInt();
+		ServerName randomServer = new ServerName(serverName,
+				RANDOM.nextInt(60000), RANDOM.nextLong());
+		return randomServer;
 	}
 
 	/**
@@ -277,6 +375,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		int numServers = clusterState.size();
 		int numRegions = 0;
 
+		long startTime = System.currentTimeMillis();
+
 		List<ServerAndAllClusteredRegions> serversByLoad = new ArrayList<ServerAndAllClusteredRegions>();
 		for (Map.Entry<ServerName, List<HRegionInfo>> entry : clusterState
 				.entrySet()) {
@@ -323,10 +423,15 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		Collections.sort(serversByLoad,
 				new ServerAndAllClusteredRegions.ServerAndLoadComparator());
 
+		long endTime = System.currentTimeMillis();
+
 		LOG.info("Cluster details after balancing: " + "servers=" + numServers
 				+ " " + "regions=" + numRegions + " average=" + avg + " "
 				+ "mostloaded=" + serversByLoad.get(last).getLoad()
 				+ " leastloaded=" + serversByLoad.get(first).getLoad());
+
+		LOG.info("Total time took for balanceRelatedRegions (in ms):"
+				+ (endTime - startTime));
 
 		return merge(fPartial, sPartial);
 	}
@@ -387,6 +492,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			List<ServerAndAllClusteredRegions> serversByLoad, int min, int max) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
+		LOG.info("truncateRegionServersToMaxRegions triggered.");
+
 		OverloadedRegionsRemover overRegItr = new OverloadedRegionsRemover(
 				serversByLoad.iterator(), max);
 
@@ -419,6 +526,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<HRegionInfo, RegionPlan> balanceRegionServersToMinRegions(
 			List<ServerAndAllClusteredRegions> serversByLoad, int min) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
+
+		LOG.info("balanceRegionServersToMinRegions triggered.");
 
 		ServersByLoadIterator serversByMinLoadItr = new ServersByLoadIterator(
 				serversByLoad.iterator(), min);
@@ -513,6 +622,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			return result;
 
 		int totReassignedCnt = 0;
+		long startTime = System.currentTimeMillis();
 
 		Set<ServerName> allUnavailServers = minus(regions.values(), servers);
 		Collection<List<HRegionInfo>> allClusteredRegionGroups = getValuesAsList(clusterRegions(regions
@@ -553,12 +663,15 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			}
 
 		}
+		long endTime = System.currentTimeMillis();
 		LOG.info("No of unavailable servers : " + allUnavailServers.size()
 				+ " and no of available servers : " + servers.size()
 				+ " and unavailable servers are: \n"
 				+ Joiner.on("\n").join(allUnavailServers));
 
 		LOG.info("Total no of reassigned regions : " + totReassignedCnt);
+		LOG.info("Total time took for retain assignment (in ms) :"
+				+ (endTime - startTime));
 		return result;
 	}
 
@@ -649,12 +762,13 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param regions
 	 * @return
 	 */
-	Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
+	public Map<RegionClusterKey, List<HRegionInfo>> clusterRegions(
 			Collection<HRegionInfo> regions) {
 		return cluster(regions, regionKeyGener);
 	}
 
-	Map<String, List<ServerName>> clusterServers(Collection<ServerName> servers) {
+	public Map<String, List<ServerName>> clusterServers(
+			Collection<ServerName> servers) {
 		return cluster(servers, hostKeyGener);
 	}
 

@@ -554,6 +554,46 @@ public class TestRelatedRegionsLoadBalancer {
 	}
 
 	@Test
+	public void testWeightedBalancing() {
+		Map<String, Integer> hostNameAndWeight = new HashMap<String, Integer>();
+		String hostA = "hosta";
+		String hostB = "hostb";
+		String hostC = "hostc";
+		hostNameAndWeight.put(hostA, 1);
+		hostNameAndWeight.put(hostB, 2);
+		hostNameAndWeight.put(hostC, 3);
+
+		ServerName serverA = new ServerName(hostA, 40000, 45);
+		ServerName serverB = new ServerName(hostB, 50000, 45);
+		ServerName serverC = new ServerName(hostC, 50000, 45);
+
+		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+		Set<String> relatedTables = new HashSet<String>();
+		relatedTablesList.add(relatedTables);
+		List<HRegionInfo> regions = genRegions(18, 2, relatedTables);
+
+		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
+				relatedTablesList, hostNameAndWeight);
+		Map<ServerName, List<HRegionInfo>> clusterState = new HashMap<ServerName, List<HRegionInfo>>();
+		clusterState.put(serverA, regions);
+		clusterState.put(serverB, new ArrayList<HRegionInfo>());
+		clusterState.put(serverC, new ArrayList<HRegionInfo>());
+
+		List<RegionPlan> result = loadBal.balanceCluster(clusterState);
+		assertTrue(!result.isEmpty());
+		assertTrue(result.size() >= 30);
+
+		Map<ServerName, List<HRegionInfo>> convertedResult = convertRegionPlanToResult(
+				result, clusterState);
+		assertEquals(3, loadBal.clusterRegions(convertedResult.get(serverA))
+				.size());
+		assertEquals(6, loadBal.clusterRegions(convertedResult.get(serverB))
+				.size());
+		assertEquals(9, loadBal.clusterRegions(convertedResult.get(serverC))
+				.size());
+	}
+
+	@Test
 	public void testImmediateAssignmentRRL() {
 		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
 		Set<String> relatedTables = new HashSet<String>();
