@@ -127,4 +127,16 @@ public class Utils {
 		for (K key : input.keySet())
 			input.get(key).clear();
 	}
+	
+    public static Integer tryParse(String input) {
+        Integer result = null;
+        try {
+            result = Integer.parseInt(input);
+        }
+        catch (NumberFormatException e) {
+            // Intentionally ignored.
+        }
+
+        return result;
+    }
 }
