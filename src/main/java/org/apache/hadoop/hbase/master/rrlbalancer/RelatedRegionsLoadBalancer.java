@@ -41,11 +41,11 @@ import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.master.LoadBalancer;
 import org.apache.hadoop.hbase.master.MasterServices;
 import org.apache.hadoop.hbase.master.RegionPlan;
+import org.apache.hadoop.hbase.master.rrlbalancer.OverloadedRegionsRemover.TruncatedElement;
+import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ListMultimap;
-import org.apache.hadoop.hbase.master.rrlbalancer.OverloadedRegionsRemover.TruncatedElement;
-import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
 
 /**
  * 
@@ -55,11 +55,17 @@ import org.apache.hadoop.hbase.master.rrlbalancer.Utils.ClusterDataKeyGenerator;
  * 
  * For this class to do its functionality, it needs to be provided with related
  * tables information. Look at {@link #RelatedRegionsLoadBalancer(List)}.
+ * 
+ * NOTE: By default Hbase uses 'hbase.master.loadbalance.bytable' value to be
+ * true. With this configuration, related tables' regions will not be passed to
+ * {@link #balanceCluster(Map)} method. It is necessary that you set this
+ * configuration to be false.
  */
 
 public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private static final Log LOG = LogFactory
 			.getLog(RelatedRegionsLoadBalancer.class);
+	private static final String HOST_WEIGHT_UPD_LISTENER = "RRLBalancer-HostWeightsFileListener";
 	private static final Random RANDOM = new Random(System.currentTimeMillis());
 
 	private final TableClusterMapping tableToClusterMapObj = new TableClusterMapping();
@@ -126,6 +132,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		}
 
 		public void run() {
+			LOG.info("HostWeightsFileChangeListener - Starting");
 			if (dirPath != null) {
 				try {
 					WatchService watchService = FileSystems.getDefault()
@@ -193,7 +200,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		HostWeightsFileChangeListener listener = new HostWeightsFileChangeListener(
 				confFileDir, confFileName);
 		listener.updateHostsWeight();
-		new Thread(listener).start();
+		new Thread(listener, HOST_WEIGHT_UPD_LISTENER).start();
 	}
 
 	@Override
@@ -275,6 +282,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private void updateHostNameAndWeight(
 			Map<String, Integer> newHostNameAndWeight) {
 		synchronized (hostNameAndWeightLock) {
+			LOG.info("Updating hostNamesAndWeight internal map.");
 			hostNamesAndWeight.clear();
 			hostNamesAndWeight.putAll(newHostNameAndWeight);
 		}
@@ -468,9 +476,9 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private Map<HRegionInfo, RegionPlan> balanceRelatedRegions(
 			Map<ServerName, List<HRegionInfo>> clusterState) {
 
-		int maxRegions = 0;
+		int maxRegionsCluster = 0;
 		int numServers = clusterState.size();
-		int numRegions = 0;
+		int numRegionsCluster = 0;
 
 		long startTime = System.currentTimeMillis();
 
@@ -479,18 +487,18 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 				.entrySet()) {
 			List<List<HRegionInfo>> clusteredServerRegions = getValuesAsList(clusterRegions(entry
 					.getValue()));
-			numRegions += clusteredServerRegions.size();
+			numRegionsCluster += clusteredServerRegions.size();
 			serversByLoad.add(new ServerAndAllClusteredRegions(entry.getKey(),
 					clusteredServerRegions));
 
-			if (maxRegions < clusteredServerRegions.size())
-				maxRegions = clusteredServerRegions.size();
+			if (maxRegionsCluster < clusteredServerRegions.size())
+				maxRegionsCluster = clusteredServerRegions.size();
 		}
 
 		Collections.sort(serversByLoad,
 				new ServerAndAllClusteredRegions.ServerAndLoadComparator());
 
-		float avg = (float) numRegions / numServers;
+		float avg = (float) numRegionsCluster / numServers;
 		int floor = (int) Math.floor(avg * (1 - slop));
 		int ceiling = (int) Math.ceil(avg * (1 + slop));
 
@@ -498,19 +506,20 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		int last = serversByLoad.size() - 1;
 
 		LOG.info("Cluster details before balancing: " + "servers=" + numServers
-				+ " " + "related-regions-set-size=" + numRegions + " average="
-				+ avg + " " + "mostloaded=" + serversByLoad.get(last).getLoad()
-				+ " leastloaded=" + serversByLoad.get(first).getLoad());
+				+ " " + "related-regions-set-size=" + numRegionsCluster
+				+ " average=" + avg + " " + "mostloaded="
+				+ serversByLoad.get(last).getLoad() + " leastloaded="
+				+ serversByLoad.get(first).getLoad());
 		if ((serversByLoad.get(last).getLoad() <= ceiling && serversByLoad.get(
 				first).getLoad() >= floor)
-				|| maxRegions == 1) {
+				|| maxRegionsCluster == 1) {
 			// Skipped because no server outside (min,max) range
 			LOG.info("Cluster is balanced as per related regions set distribution across region servers.. Skipping further operations.");
 			return new HashMap<HRegionInfo, RegionPlan>();
 		}
 
-		int min = (numRegions / numServers);
-		int max = (numRegions % numServers) == 0 ? min : min + 1;
+		int min = (numRegionsCluster / numServers);
+		int max = (numRegionsCluster % numServers) == 0 ? min : min + 1;
 
 		Map<HRegionInfo, RegionPlan> fPartial = truncateRegionServersToMaxRegions(
 				serversByLoad, min, max);
@@ -523,9 +532,10 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		long endTime = System.currentTimeMillis();
 
 		LOG.info("Cluster details after balancing: " + "servers=" + numServers
-				+ " " + "related-regions-set-size=" + numRegions + " average="
-				+ avg + " " + "mostloaded=" + serversByLoad.get(last).getLoad()
-				+ " leastloaded=" + serversByLoad.get(first).getLoad());
+				+ " " + "related-regions-set-size=" + numRegionsCluster
+				+ " average=" + avg + " " + "mostloaded="
+				+ serversByLoad.get(last).getLoad() + " leastloaded="
+				+ serversByLoad.get(first).getLoad());
 
 		LOG.info("Total time took for balanceRelatedRegions (in ms):"
 				+ (endTime - startTime));
@@ -589,7 +599,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			List<ServerAndAllClusteredRegions> serversByLoad, int min, int max) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
-		LOG.info("truncateRegionServersToMaxRegions triggered.");
+		LOG.info("truncateRegionServersToMaxRegions - Started.");
 
 		OverloadedRegionsRemover overRegItr = new OverloadedRegionsRemover(
 				serversByLoad.iterator(), max);
@@ -617,6 +627,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 					dest.getServerName(), result);
 		}
 
+		LOG.info("truncateRegionServersToMaxRegions - Done.");
 		return result;
 	}
 
@@ -624,7 +635,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			List<ServerAndAllClusteredRegions> serversByLoad, int min) {
 		Map<HRegionInfo, RegionPlan> result = new HashMap<HRegionInfo, RegionPlan>();
 
-		LOG.info("balanceRegionServersToMinRegions triggered.");
+		LOG.info("balanceRegionServersToMinRegions - started.");
 
 		ServersByLoadIterator serversByMinLoadItr = new ServersByLoadIterator(
 				serversByLoad.iterator(), min);
@@ -643,6 +654,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			prepareRegionsPlans(srcRegion.regionsCluster, srcRegion.serverName,
 					dest.getServerName(), result);
 		}
+
+		LOG.info("balanceRegionServersToMinRegions - done.");
 
 		return result;
 	}
@@ -669,6 +682,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			return result;
 		}
 
+		LOG.info("Round robin assignment - started.");
 		int numServers = servers.size();
 		int numRegions = regions.size();
 		int maxSize = numRegions / numServers;
@@ -685,6 +699,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			}
 		}
 
+		LOG.info("Round robin assignment - done.");
 		return result;
 	}
 
@@ -717,6 +732,10 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		Map<ServerName, List<HRegionInfo>> result = new TreeMap<ServerName, List<HRegionInfo>>();
 		if (servers == null || servers.isEmpty())
 			return result;
+		if (regions == null || regions.isEmpty())
+			return result;
+
+		LOG.info("retainAssignment - started.");
 
 		int totReassignedCnt = 0;
 		long startTime = System.currentTimeMillis();
@@ -730,11 +749,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			ListMultimap<ServerName, HRegionInfo> indServerNameAndClusteredRegions = reverseMap(getMapEntriesForKeys(
 					regions, indClusteredRegionGroup));
 
-			Set<ServerName> localUnavailServers = intersect(allUnavailServers,
-					indServerNameAndClusteredRegions.keySet());
-			Set<ServerName> localAvailServers = minus(
-					indServerNameAndClusteredRegions.keySet(),
-					localUnavailServers);
+			Set<ServerName> localAvailServers = intersect(
+					indServerNameAndClusteredRegions.keySet(), servers);
 
 			String avaHostWithMajRegions = findAvailableHostWithMajorityRegions(
 					hostNameAndAvaServers.keySet(),
@@ -742,11 +758,10 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			ServerName snToUseOnNoLocalAvaServers = (avaHostWithMajRegions == null) ? (randomAssignment(servers))
 					: randomAssignment(hostNameAndAvaServers
 							.get(avaHostWithMajRegions));
-			boolean isNoLocalServerAvailable = indServerNameAndClusteredRegions
-					.size() == localUnavailServers.size();
+			boolean isNoLocalServerAvailable = localAvailServers.size() == 0;
 
 			ServerName bestPlacementServer = (isNoLocalServerAvailable) ? (snToUseOnNoLocalAvaServers)
-					: findServerNameWithMajorityRegions(localAvailServers,
+					: findAvailServerNameWithMajorityRegions(localAvailServers,
 							indServerNameAndClusteredRegions);
 
 			if (!result.containsKey(bestPlacementServer))
@@ -797,7 +812,7 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	 * @param serverNameAndRegionsMap
 	 * @return
 	 */
-	private ServerName findServerNameWithMajorityRegions(
+	private ServerName findAvailServerNameWithMajorityRegions(
 			Set<ServerName> availableServers,
 			ListMultimap<ServerName, HRegionInfo> serverNameAndRegionsMap) {
 		ServerName result = null;
@@ -835,6 +850,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			return assignments;
 		}
 
+		LOG.info("immediateAssignment started.");
+
 		List<List<HRegionInfo>> clusteredRegionGroups = getValuesAsList(clusterRegions(regions));
 
 		for (List<HRegionInfo> clusterRegionGroup : clusteredRegionGroups) {
@@ -842,6 +859,8 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 			for (HRegionInfo clusterRegion : clusterRegionGroup)
 				assignments.put(clusterRegion, randomServer);
 		}
+
+		LOG.info("immediateAssignment finished.");
 		return assignments;
 	}
 
