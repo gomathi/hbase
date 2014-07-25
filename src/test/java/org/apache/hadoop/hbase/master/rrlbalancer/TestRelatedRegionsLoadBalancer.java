@@ -537,6 +537,18 @@ public class TestRelatedRegionsLoadBalancer {
 			new int[] { 1000, 6, 10, 20 }, new int[] { 1000, 6, 10, 17 } };
 
 	@Test
+	public void testRetainAssignmentRRL() {
+		List<HRegionInfo> regions = randomRegions(3);
+		List<TestServerAndLoad> servers = randomServers(3, 1);
+
+		Map<HRegionInfo, ServerName> regionsAndServers = new HashMap<HRegionInfo, ServerName>();
+		for (int i = 0; i < regions.size(); i++) {
+			regionsAndServers.put(regions.get(i), servers.get(i)
+					.getServerName());
+		}
+	}
+
+	@Test
 	public void testAlreadyBalancedClusterRRL() {
 		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
 		Set<String> relatedTables = new HashSet<String>();
@@ -693,6 +705,39 @@ public class TestRelatedRegionsLoadBalancer {
 		}
 	}
 
+	@Test
+	public void testRandomAssignmentRRL() {
+
+		Set<String> relatedTables = new HashSet<String>();
+		List<Set<String>> relatedTablesList = new ArrayList<Set<String>>();
+		relatedTablesList.add(relatedTables);
+
+		List<HRegionInfo> regionsFirst = genRegions(1, 4, relatedTables);
+
+		List<TestServerAndLoad> servers = randomServers(5, 0);
+		List<ServerName> serversList = new ArrayList<ServerName>();
+		for (TestServerAndLoad server : servers)
+			serversList.add(server.getServerName());
+
+		RelatedRegionsLoadBalancer loadBal = new RelatedRegionsLoadBalancer(
+				relatedTablesList);
+
+		ServerName assServer = loadBal.randomAssignment(regionsFirst.get(0),
+				serversList);
+		ServerName assServerTwo = loadBal.randomAssignment(regionsFirst.get(1),
+				serversList);
+
+		assertEquals(assServer, assServerTwo);
+		serversList.remove(assServerTwo);
+
+		ServerName assServerThree = loadBal.randomAssignment(
+				regionsFirst.get(2), serversList);
+		ServerName assServerFour = loadBal.randomAssignment(
+				regionsFirst.get(3), serversList);
+		assertTrue(!assServerThree.equals(assServerTwo));
+		assertEquals(assServerThree, assServerFour);
+	}
+
 	private void assertTestBalanceClusterRRL(List<RegionPlan> rplansList,
 			Map<ServerName, List<HRegionInfo>> input,
 			RelatedRegionsLoadBalancer loadBal, int clusterSize, int minRegCnt,
@@ -781,4 +826,5 @@ public class TestRelatedRegionsLoadBalancer {
 		}
 		return result;
 	}
+
 }

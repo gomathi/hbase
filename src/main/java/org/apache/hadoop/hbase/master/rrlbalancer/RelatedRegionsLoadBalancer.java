@@ -31,6 +31,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -71,8 +73,14 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 	private final TableClusterMapping tableToClusterMapObj = new TableClusterMapping();
 	private final Map<String, Integer> hostNamesAndWeight = new HashMap<String, Integer>();
 	private final Object hostNameAndWeightLock = new Object();
-	private float slop;
-	private Configuration conf;
+	/**
+	 * Used by {@link #randomAssignment(HRegionInfo, List)} method.
+	 * {@link #randomAssignment(HRegionInfo, List)} is called during RS failure.
+	 * Using this map, related regions are placed on the same RS.
+	 */
+	private final ConcurrentHashMap<RegionClusterKey, ServerName> regionsAndServers = new ConcurrentHashMap<RegionClusterKey, ServerName>();
+	private volatile float slop;
+	private volatile Configuration conf;
 
 	private final ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey> regionKeyGener = new ClusterDataKeyGenerator<HRegionInfo, RegionClusterKey>() {
 
@@ -870,6 +878,32 @@ public class RelatedRegionsLoadBalancer implements LoadBalancer {
 		if (servers == null || servers.isEmpty())
 			return null;
 		return servers.get(RANDOM.nextInt(servers.size()));
+	}
+
+	/**
+	 * This function is supposed to be used by HBase#0.98 {@link LoadBalancer}
+	 * 
+	 * @param regionInfo
+	 * @param servers
+	 * @return
+	 */
+	public ServerName randomAssignment(HRegionInfo regionInfo,
+			List<ServerName> servers) {
+
+		Set<ServerName> sortedServers = new TreeSet<ServerName>(servers);
+		RegionClusterKey regionClusterKey = new RegionClusterKey(
+				this.tableToClusterMapObj.getClusterName(regionInfo
+						.getTableNameAsString()), regionInfo.getStartKey(),
+				regionInfo.getEndKey());
+		ServerName random = randomAssignment(servers);
+		ServerName result = regionsAndServers.putIfAbsent(regionClusterKey,
+				random);
+		boolean temp = false;
+		while (result != null && !sortedServers.contains(result) && !temp) {
+			temp = regionsAndServers.replace(regionClusterKey, result, random);
+			result = regionsAndServers.get(regionClusterKey);
+		}
+		return regionsAndServers.get(regionClusterKey);
 	}
 
 	/**
