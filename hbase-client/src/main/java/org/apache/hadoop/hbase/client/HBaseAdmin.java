@@ -105,6 +105,8 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ExecProcedureRequ
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ExecProcedureResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetClusterStatusRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetCompletedSnapshotsRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetNamespaceDescriptorRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetSchemaAlterStatusRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetSchemaAlterStatusResponse;
@@ -123,6 +125,8 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ModifyColumnReque
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ModifyNamespaceRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ModifyTableRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MoveRegionRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.SetBalancerRunningRequest;
@@ -3434,6 +3438,49 @@ public synchronized  byte[][] rollHLogWriter(String serverName)
       });
     }
   }
+  
+  @Override
+  public void refreshIncludeExcludeRSConfig() throws IOException {
+    // TODO Auto-generated method stub
+    executeCallable(new MasterCallable<Void>(getConnection()) {
+
+      @Override
+      public Void call(int callTimeout) throws Exception {
+        // TODO Auto-generated method stub
+        master.refreshIncludeExcludeRSConfig(null, RefreshIncludeExcludeRSConfigRequest
+            .newBuilder().build());
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public List<String> getExcludedRegionsServers() throws IOException {
+    // TODO Auto-generated method stub
+    return executeCallable(new MasterCallable<List<String>>(getConnection()) {
+
+      @Override
+      public List<String> call(int callTimeout) throws Exception {
+        // TODO Auto-generated method stub
+        return master.getExcludedRegionsServers(null,
+          GetExcludedRegionsServersRequest.newBuilder().build()).getExcludedServersList();
+      }
+    });
+  }
+
+  @Override
+  public List<String> getIncludedRegionServers() throws IOException {
+    // TODO Auto-generated method stub
+    return executeCallable(new MasterCallable<List<String>>(getConnection()) {
+
+      @Override
+      public List<String> call(int callTimeout) throws Exception {
+        // TODO Auto-generated method stub
+        return master.getIncludedRegionServers(null,
+          GetIncludedRegionServersRequest.newBuilder().build()).getIncludedServersList();
+      }
+    });
+  }
 
   /**
    * Parent of {@link MasterCallable} and {@link MasterCallable}.
@@ -3524,4 +3571,5 @@ public synchronized  byte[][] rollHLogWriter(String serverName)
       return true;
     }
   }
+
 }

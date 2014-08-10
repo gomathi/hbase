@@ -358,6 +358,25 @@ message IsProcedureDoneResponse {
         optional ProcedureDescription snapshot = 2;
 }
 
+message GetExcludedRegionsServersRequest {
+}
+
+message GetExcludedRegionsServersResponse {
+		repeated string excludedServers = 1;
+}
+
+message GetIncludedRegionServersRequest {
+}
+
+message GetIncludedRegionServersResponse {
+    	repeated string includedServers = 1;
+}
+message RefreshIncludeExcludeRSConfigRequest {
+}
+
+message RefreshIncludeExcludeRSConfigResponse {
+}
+
 service MasterService {
   /** Used by the client to get the number of regions that have received the updated schema */
   rpc GetSchemaAlterStatus(GetSchemaAlterStatusRequest)
@@ -565,4 +584,13 @@ service MasterService {
   /** returns a list of tables for a given namespace*/
   rpc ListTableNamesByNamespace(ListTableNamesByNamespaceRequest)
     returns(ListTableNamesByNamespaceResponse);
+    
+  rpc RefreshIncludeExcludeRSConfig(RefreshIncludeExcludeRSConfigRequest)
+    returns(RefreshIncludeExcludeRSConfigResponse);
+  
+  rpc GetExcludedRegionsServers(GetExcludedRegionsServersRequest)
+  	returns(GetExcludedRegionsServersResponse);
+  	
+  rpc GetIncludedRegionServers(GetIncludedRegionServersRequest)
+    returns(GetIncludedRegionServersResponse);  	
 }

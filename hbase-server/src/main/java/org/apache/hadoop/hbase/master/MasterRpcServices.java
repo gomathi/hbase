@@ -42,6 +42,7 @@ import org.apache.hadoop.hbase.MetaTableAccessor;
 import org.apache.hadoop.hbase.exceptions.MergeRegionException;
 import org.apache.hadoop.hbase.exceptions.UnknownProtocolException;
 import org.apache.hadoop.hbase.ipc.RpcServer.BlockingServiceAndInterface;
+import org.apache.hadoop.hbase.ipc.ServerNotRunningYetException;
 import org.apache.hadoop.hbase.ipc.ServerRpcController;
 import org.apache.hadoop.hbase.procedure.MasterProcedureManager;
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
@@ -84,6 +85,10 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetClusterStatusR
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetClusterStatusResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetCompletedSnapshotsRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetCompletedSnapshotsResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetNamespaceDescriptorRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetNamespaceDescriptorResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetSchemaAlterStatusRequest;
@@ -119,6 +124,8 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MoveRegionRequest
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MoveRegionResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.OfflineRegionRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.OfflineRegionResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RunCatalogScanRequest;
@@ -1267,6 +1274,49 @@ public class MasterRpcServices extends RSRpcServices
       return rrtr.build();
     } catch (IOException ioe) {
       throw new ServiceException(ioe);
+    }
+  }
+
+  @Override
+  public RefreshIncludeExcludeRSConfigResponse refreshIncludeExcludeRSConfig(
+      RpcController controller, RefreshIncludeExcludeRSConfigRequest request)
+      throws ServiceException {
+    // TODO Auto-generated method stub
+    try {
+      master.checkServiceStarted();
+      master.serverManager.refreshIncludeExcludeRSConfig();
+      return RefreshIncludeExcludeRSConfigResponse.newBuilder().build();
+    } catch (IOException ioe) {
+      throw new ServiceException(ioe);
+    }
+  }
+
+  @Override
+  public GetExcludedRegionsServersResponse getExcludedRegionsServers(RpcController controller,
+      GetExcludedRegionsServersRequest request) throws ServiceException {
+    // TODO Auto-generated method stub
+    try {
+      master.checkServiceStarted();
+      List<String> excludedServers = master.serverManager.getExcludedRegionServers();
+      return GetExcludedRegionsServersResponse.newBuilder().addAllExcludedServers(excludedServers)
+          .build();
+    } catch (ServerNotRunningYetException snrye) {
+      // TODO Auto-generated catch block
+      throw new ServiceException(snrye);
+    }
+  }
+
+  @Override
+  public GetIncludedRegionServersResponse getIncludedRegionServers(RpcController controller,
+      GetIncludedRegionServersRequest request) throws ServiceException {
+    try {
+      master.checkServiceStarted();
+      List<String> excludedServers = master.serverManager.getIncludedRegionServers();
+      return GetIncludedRegionServersResponse.newBuilder().addAllIncludedServers(excludedServers)
+          .build();
+    } catch (ServerNotRunningYetException snrye) {
+      // TODO Auto-generated catch block
+      throw new ServiceException(snrye);
     }
   }
 }

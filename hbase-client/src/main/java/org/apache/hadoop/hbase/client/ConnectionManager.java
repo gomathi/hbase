@@ -107,6 +107,10 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetClusterStatusR
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetClusterStatusResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetCompletedSnapshotsRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetCompletedSnapshotsResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetNamespaceDescriptorRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetNamespaceDescriptorResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetSchemaAlterStatusRequest;
@@ -142,6 +146,8 @@ import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MoveRegionRequest
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.MoveRegionResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.OfflineRegionRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.OfflineRegionResponse;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest;
+import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotRequest;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RestoreSnapshotResponse;
 import org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RunCatalogScanRequest;
@@ -2015,6 +2021,29 @@ class ConnectionManager {
             RpcController controller, GetClusterStatusRequest request)
             throws ServiceException {
           return stub.getClusterStatus(controller, request);
+        }
+
+        @Override
+        public RefreshIncludeExcludeRSConfigResponse refreshIncludeExcludeRSConfig(
+            RpcController controller, RefreshIncludeExcludeRSConfigRequest request)
+            throws ServiceException {
+          // TODO Auto-generated method stub
+          return stub.refreshIncludeExcludeRSConfig(controller, request);
+        }
+
+        @Override
+        public GetExcludedRegionsServersResponse getExcludedRegionsServers(
+            RpcController controller, GetExcludedRegionsServersRequest request)
+            throws ServiceException {
+          // TODO Auto-generated method stub
+          return stub.getExcludedRegionsServers(controller, request);
+        }
+
+        @Override
+        public GetIncludedRegionServersResponse getIncludedRegionServers(RpcController controller,
+            GetIncludedRegionServersRequest request) throws ServiceException {
+          // TODO Auto-generated method stub
+          return stub.getIncludedRegionServers(controller, request);
         }
       };
     }

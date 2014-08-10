@@ -40626,6 +40626,2422 @@ public final class MasterProtos {
     // @@protoc_insertion_point(class_scope:IsProcedureDoneResponse)
   }
 
+  public interface GetExcludedRegionsServersRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code GetExcludedRegionsServersRequest}
+   */
+  public static final class GetExcludedRegionsServersRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements GetExcludedRegionsServersRequestOrBuilder {
+    // Use GetExcludedRegionsServersRequest.newBuilder() to construct.
+    private GetExcludedRegionsServersRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private GetExcludedRegionsServersRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final GetExcludedRegionsServersRequest defaultInstance;
+    public static GetExcludedRegionsServersRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public GetExcludedRegionsServersRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GetExcludedRegionsServersRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<GetExcludedRegionsServersRequest> PARSER =
+        new com.google.protobuf.AbstractParser<GetExcludedRegionsServersRequest>() {
+      public GetExcludedRegionsServersRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new GetExcludedRegionsServersRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GetExcludedRegionsServersRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest) obj;
+
+      boolean result = true;
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code GetExcludedRegionsServersRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersRequest_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:GetExcludedRegionsServersRequest)
+    }
+
+    static {
+      defaultInstance = new GetExcludedRegionsServersRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:GetExcludedRegionsServersRequest)
+  }
+
+  public interface GetExcludedRegionsServersResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // repeated string excludedServers = 1;
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    java.util.List<java.lang.String>
+    getExcludedServersList();
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    int getExcludedServersCount();
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    java.lang.String getExcludedServers(int index);
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getExcludedServersBytes(int index);
+  }
+  /**
+   * Protobuf type {@code GetExcludedRegionsServersResponse}
+   */
+  public static final class GetExcludedRegionsServersResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements GetExcludedRegionsServersResponseOrBuilder {
+    // Use GetExcludedRegionsServersResponse.newBuilder() to construct.
+    private GetExcludedRegionsServersResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private GetExcludedRegionsServersResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final GetExcludedRegionsServersResponse defaultInstance;
+    public static GetExcludedRegionsServersResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public GetExcludedRegionsServersResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GetExcludedRegionsServersResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                excludedServers_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              excludedServers_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          excludedServers_ = new com.google.protobuf.UnmodifiableLazyStringList(excludedServers_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<GetExcludedRegionsServersResponse> PARSER =
+        new com.google.protobuf.AbstractParser<GetExcludedRegionsServersResponse>() {
+      public GetExcludedRegionsServersResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new GetExcludedRegionsServersResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GetExcludedRegionsServersResponse> getParserForType() {
+      return PARSER;
+    }
+
+    // repeated string excludedServers = 1;
+    public static final int EXCLUDEDSERVERS_FIELD_NUMBER = 1;
+    private com.google.protobuf.LazyStringList excludedServers_;
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    public java.util.List<java.lang.String>
+        getExcludedServersList() {
+      return excludedServers_;
+    }
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    public int getExcludedServersCount() {
+      return excludedServers_.size();
+    }
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    public java.lang.String getExcludedServers(int index) {
+      return excludedServers_.get(index);
+    }
+    /**
+     * <code>repeated string excludedServers = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getExcludedServersBytes(int index) {
+      return excludedServers_.getByteString(index);
+    }
+
+    private void initFields() {
+      excludedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < excludedServers_.size(); i++) {
+        output.writeBytes(1, excludedServers_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < excludedServers_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(excludedServers_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getExcludedServersList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse) obj;
+
+      boolean result = true;
+      result = result && getExcludedServersList()
+          .equals(other.getExcludedServersList());
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      if (getExcludedServersCount() > 0) {
+        hash = (37 * hash) + EXCLUDEDSERVERS_FIELD_NUMBER;
+        hash = (53 * hash) + getExcludedServersList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code GetExcludedRegionsServersResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        excludedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetExcludedRegionsServersResponse_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          excludedServers_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              excludedServers_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.excludedServers_ = excludedServers_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance()) return this;
+        if (!other.excludedServers_.isEmpty()) {
+          if (excludedServers_.isEmpty()) {
+            excludedServers_ = other.excludedServers_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureExcludedServersIsMutable();
+            excludedServers_.addAll(other.excludedServers_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // repeated string excludedServers = 1;
+      private com.google.protobuf.LazyStringList excludedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureExcludedServersIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          excludedServers_ = new com.google.protobuf.LazyStringArrayList(excludedServers_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public java.util.List<java.lang.String>
+          getExcludedServersList() {
+        return java.util.Collections.unmodifiableList(excludedServers_);
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public int getExcludedServersCount() {
+        return excludedServers_.size();
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public java.lang.String getExcludedServers(int index) {
+        return excludedServers_.get(index);
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getExcludedServersBytes(int index) {
+        return excludedServers_.getByteString(index);
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public Builder setExcludedServers(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureExcludedServersIsMutable();
+        excludedServers_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public Builder addExcludedServers(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureExcludedServersIsMutable();
+        excludedServers_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public Builder addAllExcludedServers(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureExcludedServersIsMutable();
+        super.addAll(values, excludedServers_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public Builder clearExcludedServers() {
+        excludedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string excludedServers = 1;</code>
+       */
+      public Builder addExcludedServersBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureExcludedServersIsMutable();
+        excludedServers_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:GetExcludedRegionsServersResponse)
+    }
+
+    static {
+      defaultInstance = new GetExcludedRegionsServersResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:GetExcludedRegionsServersResponse)
+  }
+
+  public interface GetIncludedRegionServersRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code GetIncludedRegionServersRequest}
+   */
+  public static final class GetIncludedRegionServersRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements GetIncludedRegionServersRequestOrBuilder {
+    // Use GetIncludedRegionServersRequest.newBuilder() to construct.
+    private GetIncludedRegionServersRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private GetIncludedRegionServersRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final GetIncludedRegionServersRequest defaultInstance;
+    public static GetIncludedRegionServersRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public GetIncludedRegionServersRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GetIncludedRegionServersRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<GetIncludedRegionServersRequest> PARSER =
+        new com.google.protobuf.AbstractParser<GetIncludedRegionServersRequest>() {
+      public GetIncludedRegionServersRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new GetIncludedRegionServersRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GetIncludedRegionServersRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest) obj;
+
+      boolean result = true;
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code GetIncludedRegionServersRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersRequest_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:GetIncludedRegionServersRequest)
+    }
+
+    static {
+      defaultInstance = new GetIncludedRegionServersRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:GetIncludedRegionServersRequest)
+  }
+
+  public interface GetIncludedRegionServersResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // repeated string includedServers = 1;
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    java.util.List<java.lang.String>
+    getIncludedServersList();
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    int getIncludedServersCount();
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    java.lang.String getIncludedServers(int index);
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getIncludedServersBytes(int index);
+  }
+  /**
+   * Protobuf type {@code GetIncludedRegionServersResponse}
+   */
+  public static final class GetIncludedRegionServersResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements GetIncludedRegionServersResponseOrBuilder {
+    // Use GetIncludedRegionServersResponse.newBuilder() to construct.
+    private GetIncludedRegionServersResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private GetIncludedRegionServersResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final GetIncludedRegionServersResponse defaultInstance;
+    public static GetIncludedRegionServersResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public GetIncludedRegionServersResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private GetIncludedRegionServersResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+                includedServers_ = new com.google.protobuf.LazyStringArrayList();
+                mutable_bitField0_ |= 0x00000001;
+              }
+              includedServers_.add(input.readBytes());
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        if (((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
+          includedServers_ = new com.google.protobuf.UnmodifiableLazyStringList(includedServers_);
+        }
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<GetIncludedRegionServersResponse> PARSER =
+        new com.google.protobuf.AbstractParser<GetIncludedRegionServersResponse>() {
+      public GetIncludedRegionServersResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new GetIncludedRegionServersResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<GetIncludedRegionServersResponse> getParserForType() {
+      return PARSER;
+    }
+
+    // repeated string includedServers = 1;
+    public static final int INCLUDEDSERVERS_FIELD_NUMBER = 1;
+    private com.google.protobuf.LazyStringList includedServers_;
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    public java.util.List<java.lang.String>
+        getIncludedServersList() {
+      return includedServers_;
+    }
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    public int getIncludedServersCount() {
+      return includedServers_.size();
+    }
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    public java.lang.String getIncludedServers(int index) {
+      return includedServers_.get(index);
+    }
+    /**
+     * <code>repeated string includedServers = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getIncludedServersBytes(int index) {
+      return includedServers_.getByteString(index);
+    }
+
+    private void initFields() {
+      includedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (int i = 0; i < includedServers_.size(); i++) {
+        output.writeBytes(1, includedServers_.getByteString(i));
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      {
+        int dataSize = 0;
+        for (int i = 0; i < includedServers_.size(); i++) {
+          dataSize += com.google.protobuf.CodedOutputStream
+            .computeBytesSizeNoTag(includedServers_.getByteString(i));
+        }
+        size += dataSize;
+        size += 1 * getIncludedServersList().size();
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse) obj;
+
+      boolean result = true;
+      result = result && getIncludedServersList()
+          .equals(other.getIncludedServersList());
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      if (getIncludedServersCount() > 0) {
+        hash = (37 * hash) + INCLUDEDSERVERS_FIELD_NUMBER;
+        hash = (53 * hash) + getIncludedServersList().hashCode();
+      }
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code GetIncludedRegionServersResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        includedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_GetIncludedRegionServersResponse_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse(this);
+        int from_bitField0_ = bitField0_;
+        if (((bitField0_ & 0x00000001) == 0x00000001)) {
+          includedServers_ = new com.google.protobuf.UnmodifiableLazyStringList(
+              includedServers_);
+          bitField0_ = (bitField0_ & ~0x00000001);
+        }
+        result.includedServers_ = includedServers_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance()) return this;
+        if (!other.includedServers_.isEmpty()) {
+          if (includedServers_.isEmpty()) {
+            includedServers_ = other.includedServers_;
+            bitField0_ = (bitField0_ & ~0x00000001);
+          } else {
+            ensureIncludedServersIsMutable();
+            includedServers_.addAll(other.includedServers_);
+          }
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // repeated string includedServers = 1;
+      private com.google.protobuf.LazyStringList includedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+      private void ensureIncludedServersIsMutable() {
+        if (!((bitField0_ & 0x00000001) == 0x00000001)) {
+          includedServers_ = new com.google.protobuf.LazyStringArrayList(includedServers_);
+          bitField0_ |= 0x00000001;
+         }
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public java.util.List<java.lang.String>
+          getIncludedServersList() {
+        return java.util.Collections.unmodifiableList(includedServers_);
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public int getIncludedServersCount() {
+        return includedServers_.size();
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public java.lang.String getIncludedServers(int index) {
+        return includedServers_.get(index);
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getIncludedServersBytes(int index) {
+        return includedServers_.getByteString(index);
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public Builder setIncludedServers(
+          int index, java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIncludedServersIsMutable();
+        includedServers_.set(index, value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public Builder addIncludedServers(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIncludedServersIsMutable();
+        includedServers_.add(value);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public Builder addAllIncludedServers(
+          java.lang.Iterable<java.lang.String> values) {
+        ensureIncludedServersIsMutable();
+        super.addAll(values, includedServers_);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public Builder clearIncludedServers() {
+        includedServers_ = com.google.protobuf.LazyStringArrayList.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>repeated string includedServers = 1;</code>
+       */
+      public Builder addIncludedServersBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  ensureIncludedServersIsMutable();
+        includedServers_.add(value);
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:GetIncludedRegionServersResponse)
+    }
+
+    static {
+      defaultInstance = new GetIncludedRegionServersResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:GetIncludedRegionServersResponse)
+  }
+
+  public interface RefreshIncludeExcludeRSConfigRequestOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code RefreshIncludeExcludeRSConfigRequest}
+   */
+  public static final class RefreshIncludeExcludeRSConfigRequest extends
+      com.google.protobuf.GeneratedMessage
+      implements RefreshIncludeExcludeRSConfigRequestOrBuilder {
+    // Use RefreshIncludeExcludeRSConfigRequest.newBuilder() to construct.
+    private RefreshIncludeExcludeRSConfigRequest(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private RefreshIncludeExcludeRSConfigRequest(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RefreshIncludeExcludeRSConfigRequest defaultInstance;
+    public static RefreshIncludeExcludeRSConfigRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public RefreshIncludeExcludeRSConfigRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RefreshIncludeExcludeRSConfigRequest(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigRequest_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RefreshIncludeExcludeRSConfigRequest> PARSER =
+        new com.google.protobuf.AbstractParser<RefreshIncludeExcludeRSConfigRequest>() {
+      public RefreshIncludeExcludeRSConfigRequest parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RefreshIncludeExcludeRSConfigRequest(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RefreshIncludeExcludeRSConfigRequest> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest) obj;
+
+      boolean result = true;
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code RefreshIncludeExcludeRSConfigRequest}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequestOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigRequest_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:RefreshIncludeExcludeRSConfigRequest)
+    }
+
+    static {
+      defaultInstance = new RefreshIncludeExcludeRSConfigRequest(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:RefreshIncludeExcludeRSConfigRequest)
+  }
+
+  public interface RefreshIncludeExcludeRSConfigResponseOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+  }
+  /**
+   * Protobuf type {@code RefreshIncludeExcludeRSConfigResponse}
+   */
+  public static final class RefreshIncludeExcludeRSConfigResponse extends
+      com.google.protobuf.GeneratedMessage
+      implements RefreshIncludeExcludeRSConfigResponseOrBuilder {
+    // Use RefreshIncludeExcludeRSConfigResponse.newBuilder() to construct.
+    private RefreshIncludeExcludeRSConfigResponse(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private RefreshIncludeExcludeRSConfigResponse(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final RefreshIncludeExcludeRSConfigResponse defaultInstance;
+    public static RefreshIncludeExcludeRSConfigResponse getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public RefreshIncludeExcludeRSConfigResponse getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RefreshIncludeExcludeRSConfigResponse(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigResponse_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<RefreshIncludeExcludeRSConfigResponse> PARSER =
+        new com.google.protobuf.AbstractParser<RefreshIncludeExcludeRSConfigResponse>() {
+      public RefreshIncludeExcludeRSConfigResponse parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RefreshIncludeExcludeRSConfigResponse(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RefreshIncludeExcludeRSConfigResponse> getParserForType() {
+      return PARSER;
+    }
+
+    private void initFields() {
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse)) {
+        return super.equals(obj);
+      }
+      org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse other = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse) obj;
+
+      boolean result = true;
+      result = result &&
+          getUnknownFields().equals(other.getUnknownFields());
+      return result;
+    }
+
+    private int memoizedHashCode = 0;
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptorForType().hashCode();
+      hash = (29 * hash) + getUnknownFields().hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code RefreshIncludeExcludeRSConfigResponse}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponseOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigResponse_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.class, org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.Builder.class);
+      }
+
+      // Construct using org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse getDefaultInstanceForType() {
+        return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance();
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse build() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse buildPartial() {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse result = new org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse(this);
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse) {
+          return mergeFrom((org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse other) {
+        if (other == org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance()) return this;
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:RefreshIncludeExcludeRSConfigResponse)
+    }
+
+    static {
+      defaultInstance = new RefreshIncludeExcludeRSConfigResponse(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:RefreshIncludeExcludeRSConfigResponse)
+  }
+
   /**
    * Protobuf service {@code MasterService}
    */
@@ -41176,6 +43592,30 @@ public final class MasterProtos {
           org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest request,
           com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse> done);
 
+      /**
+       * <code>rpc RefreshIncludeExcludeRSConfig(.RefreshIncludeExcludeRSConfigRequest) returns (.RefreshIncludeExcludeRSConfigResponse);</code>
+       */
+      public abstract void refreshIncludeExcludeRSConfig(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse> done);
+
+      /**
+       * <code>rpc GetExcludedRegionsServers(.GetExcludedRegionsServersRequest) returns (.GetExcludedRegionsServersResponse);</code>
+       */
+      public abstract void getExcludedRegionsServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse> done);
+
+      /**
+       * <code>rpc GetIncludedRegionServers(.GetIncludedRegionServersRequest) returns (.GetIncludedRegionServersResponse);</code>
+       */
+      public abstract void getIncludedRegionServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse> done);
+
     }
 
     public static com.google.protobuf.Service newReflectiveService(
@@ -41525,6 +43965,30 @@ public final class MasterProtos {
           impl.listTableNamesByNamespace(controller, request, done);
         }
 
+        @java.lang.Override
+        public  void refreshIncludeExcludeRSConfig(
+            com.google.protobuf.RpcController controller,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request,
+            com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse> done) {
+          impl.refreshIncludeExcludeRSConfig(controller, request, done);
+        }
+
+        @java.lang.Override
+        public  void getExcludedRegionsServers(
+            com.google.protobuf.RpcController controller,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request,
+            com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse> done) {
+          impl.getExcludedRegionsServers(controller, request, done);
+        }
+
+        @java.lang.Override
+        public  void getIncludedRegionServers(
+            com.google.protobuf.RpcController controller,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request,
+            com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse> done) {
+          impl.getIncludedRegionServers(controller, request, done);
+        }
+
       };
     }
 
@@ -41633,6 +44097,12 @@ public final class MasterProtos {
               return impl.listTableDescriptorsByNamespace(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableDescriptorsByNamespaceRequest)request);
             case 42:
               return impl.listTableNamesByNamespace(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest)request);
+            case 43:
+              return impl.refreshIncludeExcludeRSConfig(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest)request);
+            case 44:
+              return impl.getExcludedRegionsServers(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest)request);
+            case 45:
+              return impl.getIncludedRegionServers(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest)request);
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -41733,6 +44203,12 @@ public final class MasterProtos {
               return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableDescriptorsByNamespaceRequest.getDefaultInstance();
             case 42:
               return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest.getDefaultInstance();
+            case 43:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.getDefaultInstance();
+            case 44:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.getDefaultInstance();
+            case 45:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -41833,6 +44309,12 @@ public final class MasterProtos {
               return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableDescriptorsByNamespaceResponse.getDefaultInstance();
             case 42:
               return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse.getDefaultInstance();
+            case 43:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance();
+            case 44:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance();
+            case 45:
+              return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance();
             default:
               throw new java.lang.AssertionError("Can't get here.");
           }
@@ -42383,6 +44865,30 @@ public final class MasterProtos {
         org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest request,
         com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse> done);
 
+    /**
+     * <code>rpc RefreshIncludeExcludeRSConfig(.RefreshIncludeExcludeRSConfigRequest) returns (.RefreshIncludeExcludeRSConfigResponse);</code>
+     */
+    public abstract void refreshIncludeExcludeRSConfig(
+        com.google.protobuf.RpcController controller,
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request,
+        com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse> done);
+
+    /**
+     * <code>rpc GetExcludedRegionsServers(.GetExcludedRegionsServersRequest) returns (.GetExcludedRegionsServersResponse);</code>
+     */
+    public abstract void getExcludedRegionsServers(
+        com.google.protobuf.RpcController controller,
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request,
+        com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse> done);
+
+    /**
+     * <code>rpc GetIncludedRegionServers(.GetIncludedRegionServersRequest) returns (.GetIncludedRegionServersResponse);</code>
+     */
+    public abstract void getIncludedRegionServers(
+        com.google.protobuf.RpcController controller,
+        org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request,
+        com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse> done);
+
     public static final
         com.google.protobuf.Descriptors.ServiceDescriptor
         getDescriptor() {
@@ -42620,6 +45126,21 @@ public final class MasterProtos {
             com.google.protobuf.RpcUtil.<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse>specializeCallback(
               done));
           return;
+        case 43:
+          this.refreshIncludeExcludeRSConfig(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest)request,
+            com.google.protobuf.RpcUtil.<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse>specializeCallback(
+              done));
+          return;
+        case 44:
+          this.getExcludedRegionsServers(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest)request,
+            com.google.protobuf.RpcUtil.<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse>specializeCallback(
+              done));
+          return;
+        case 45:
+          this.getIncludedRegionServers(controller, (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest)request,
+            com.google.protobuf.RpcUtil.<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse>specializeCallback(
+              done));
+          return;
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -42720,6 +45241,12 @@ public final class MasterProtos {
           return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableDescriptorsByNamespaceRequest.getDefaultInstance();
         case 42:
           return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest.getDefaultInstance();
+        case 43:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest.getDefaultInstance();
+        case 44:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest.getDefaultInstance();
+        case 45:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -42820,6 +45347,12 @@ public final class MasterProtos {
           return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableDescriptorsByNamespaceResponse.getDefaultInstance();
         case 42:
           return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse.getDefaultInstance();
+        case 43:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance();
+        case 44:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance();
+        case 45:
+          return org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance();
         default:
           throw new java.lang.AssertionError("Can't get here.");
       }
@@ -43485,6 +46018,51 @@ public final class MasterProtos {
             org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse.class,
             org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse.getDefaultInstance()));
       }
+
+      public  void refreshIncludeExcludeRSConfig(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse> done) {
+        channel.callMethod(
+          getDescriptor().getMethods().get(43),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance(),
+          com.google.protobuf.RpcUtil.generalizeCallback(
+            done,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.class,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance()));
+      }
+
+      public  void getExcludedRegionsServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse> done) {
+        channel.callMethod(
+          getDescriptor().getMethods().get(44),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance(),
+          com.google.protobuf.RpcUtil.generalizeCallback(
+            done,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.class,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance()));
+      }
+
+      public  void getIncludedRegionServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request,
+          com.google.protobuf.RpcCallback<org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse> done) {
+        channel.callMethod(
+          getDescriptor().getMethods().get(45),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance(),
+          com.google.protobuf.RpcUtil.generalizeCallback(
+            done,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.class,
+            org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance()));
+      }
     }
 
     public static BlockingInterface newBlockingStub(
@@ -43706,6 +46284,21 @@ public final class MasterProtos {
       public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse listTableNamesByNamespace(
           com.google.protobuf.RpcController controller,
           org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceRequest request)
+          throws com.google.protobuf.ServiceException;
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse refreshIncludeExcludeRSConfig(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request)
+          throws com.google.protobuf.ServiceException;
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse getExcludedRegionsServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request)
+          throws com.google.protobuf.ServiceException;
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse getIncludedRegionServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request)
           throws com.google.protobuf.ServiceException;
     }
 
@@ -44231,6 +46824,42 @@ public final class MasterProtos {
           org.apache.hadoop.hbase.protobuf.generated.MasterProtos.ListTableNamesByNamespaceResponse.getDefaultInstance());
       }
 
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse refreshIncludeExcludeRSConfig(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigRequest request)
+          throws com.google.protobuf.ServiceException {
+        return (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse) channel.callBlockingMethod(
+          getDescriptor().getMethods().get(43),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.RefreshIncludeExcludeRSConfigResponse.getDefaultInstance());
+      }
+
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse getExcludedRegionsServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersRequest request)
+          throws com.google.protobuf.ServiceException {
+        return (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse) channel.callBlockingMethod(
+          getDescriptor().getMethods().get(44),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetExcludedRegionsServersResponse.getDefaultInstance());
+      }
+
+
+      public org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse getIncludedRegionServers(
+          com.google.protobuf.RpcController controller,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersRequest request)
+          throws com.google.protobuf.ServiceException {
+        return (org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse) channel.callBlockingMethod(
+          getDescriptor().getMethods().get(45),
+          controller,
+          request,
+          org.apache.hadoop.hbase.protobuf.generated.MasterProtos.GetIncludedRegionServersResponse.getDefaultInstance());
+      }
+
     }
 
     // @@protoc_insertion_point(class_scope:MasterService)
@@ -44646,6 +47275,36 @@ public final class MasterProtos {
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_IsProcedureDoneResponse_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_GetExcludedRegionsServersRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_GetExcludedRegionsServersRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_GetExcludedRegionsServersResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_GetExcludedRegionsServersResponse_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_GetIncludedRegionServersRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_GetIncludedRegionServersRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_GetIncludedRegionServersResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_GetIncludedRegionServersResponse_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_RefreshIncludeExcludeRSConfigRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_RefreshIncludeExcludeRSConfigResponse_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -44763,86 +47422,100 @@ public final class MasterProtos {
       "IsProcedureDoneRequest\022(\n\tprocedure\030\001 \001(" +
       "\0132\025.ProcedureDescription\"W\n\027IsProcedureD" +
       "oneResponse\022\023\n\004done\030\001 \001(\010:\005false\022\'\n\010snap" +
-      "shot\030\002 \001(\0132\025.ProcedureDescription2\365\027\n\rMa" +
-      "sterService\022S\n\024GetSchemaAlterStatus\022\034.Ge",
-      "tSchemaAlterStatusRequest\032\035.GetSchemaAlt" +
-      "erStatusResponse\022P\n\023GetTableDescriptors\022" +
-      "\033.GetTableDescriptorsRequest\032\034.GetTableD" +
-      "escriptorsResponse\022>\n\rGetTableNames\022\025.Ge" +
-      "tTableNamesRequest\032\026.GetTableNamesRespon" +
-      "se\022G\n\020GetClusterStatus\022\030.GetClusterStatu" +
-      "sRequest\032\031.GetClusterStatusResponse\022D\n\017I" +
-      "sMasterRunning\022\027.IsMasterRunningRequest\032" +
-      "\030.IsMasterRunningResponse\0222\n\tAddColumn\022\021" +
-      ".AddColumnRequest\032\022.AddColumnResponse\022;\n",
-      "\014DeleteColumn\022\024.DeleteColumnRequest\032\025.De" +
-      "leteColumnResponse\022;\n\014ModifyColumn\022\024.Mod" +
-      "ifyColumnRequest\032\025.ModifyColumnResponse\022" +
-      "5\n\nMoveRegion\022\022.MoveRegionRequest\032\023.Move" +
-      "RegionResponse\022Y\n\026DispatchMergingRegions" +
-      "\022\036.DispatchMergingRegionsRequest\032\037.Dispa" +
-      "tchMergingRegionsResponse\022;\n\014AssignRegio" +
-      "n\022\024.AssignRegionRequest\032\025.AssignRegionRe" +
-      "sponse\022A\n\016UnassignRegion\022\026.UnassignRegio" +
-      "nRequest\032\027.UnassignRegionResponse\022>\n\rOff",
-      "lineRegion\022\025.OfflineRegionRequest\032\026.Offl" +
-      "ineRegionResponse\0228\n\013DeleteTable\022\023.Delet" +
-      "eTableRequest\032\024.DeleteTableResponse\022>\n\rt" +
-      "runcateTable\022\025.TruncateTableRequest\032\026.Tr" +
-      "uncateTableResponse\0228\n\013EnableTable\022\023.Ena" +
-      "bleTableRequest\032\024.EnableTableResponse\022;\n" +
-      "\014DisableTable\022\024.DisableTableRequest\032\025.Di" +
-      "sableTableResponse\0228\n\013ModifyTable\022\023.Modi" +
-      "fyTableRequest\032\024.ModifyTableResponse\0228\n\013" +
-      "CreateTable\022\023.CreateTableRequest\032\024.Creat",
-      "eTableResponse\022/\n\010Shutdown\022\020.ShutdownReq" +
-      "uest\032\021.ShutdownResponse\0225\n\nStopMaster\022\022." +
-      "StopMasterRequest\032\023.StopMasterResponse\022," +
-      "\n\007Balance\022\017.BalanceRequest\032\020.BalanceResp" +
-      "onse\022M\n\022SetBalancerRunning\022\032.SetBalancer" +
-      "RunningRequest\032\033.SetBalancerRunningRespo" +
-      "nse\022A\n\016RunCatalogScan\022\026.RunCatalogScanRe" +
-      "quest\032\027.RunCatalogScanResponse\022S\n\024Enable" +
-      "CatalogJanitor\022\034.EnableCatalogJanitorReq" +
-      "uest\032\035.EnableCatalogJanitorResponse\022\\\n\027I",
-      "sCatalogJanitorEnabled\022\037.IsCatalogJanito" +
-      "rEnabledRequest\032 .IsCatalogJanitorEnable" +
-      "dResponse\022L\n\021ExecMasterService\022\032.Coproce" +
-      "ssorServiceRequest\032\033.CoprocessorServiceR" +
-      "esponse\022/\n\010Snapshot\022\020.SnapshotRequest\032\021." +
-      "SnapshotResponse\022V\n\025GetCompletedSnapshot" +
-      "s\022\035.GetCompletedSnapshotsRequest\032\036.GetCo" +
-      "mpletedSnapshotsResponse\022A\n\016DeleteSnapsh" +
-      "ot\022\026.DeleteSnapshotRequest\032\027.DeleteSnaps" +
-      "hotResponse\022A\n\016IsSnapshotDone\022\026.IsSnapsh",
-      "otDoneRequest\032\027.IsSnapshotDoneResponse\022D" +
-      "\n\017RestoreSnapshot\022\027.RestoreSnapshotReque" +
-      "st\032\030.RestoreSnapshotResponse\022V\n\025IsRestor" +
-      "eSnapshotDone\022\035.IsRestoreSnapshotDoneReq" +
-      "uest\032\036.IsRestoreSnapshotDoneResponse\022>\n\r" +
-      "ExecProcedure\022\025.ExecProcedureRequest\032\026.E" +
-      "xecProcedureResponse\022E\n\024ExecProcedureWit" +
-      "hRet\022\025.ExecProcedureRequest\032\026.ExecProced" +
-      "ureResponse\022D\n\017IsProcedureDone\022\027.IsProce" +
-      "dureDoneRequest\032\030.IsProcedureDoneRespons",
-      "e\022D\n\017ModifyNamespace\022\027.ModifyNamespaceRe" +
-      "quest\032\030.ModifyNamespaceResponse\022D\n\017Creat" +
-      "eNamespace\022\027.CreateNamespaceRequest\032\030.Cr" +
-      "eateNamespaceResponse\022D\n\017DeleteNamespace" +
-      "\022\027.DeleteNamespaceRequest\032\030.DeleteNamesp" +
-      "aceResponse\022Y\n\026GetNamespaceDescriptor\022\036." +
-      "GetNamespaceDescriptorRequest\032\037.GetNames" +
-      "paceDescriptorResponse\022_\n\030ListNamespaceD" +
-      "escriptors\022 .ListNamespaceDescriptorsReq" +
-      "uest\032!.ListNamespaceDescriptorsResponse\022",
-      "t\n\037ListTableDescriptorsByNamespace\022\'.Lis" +
-      "tTableDescriptorsByNamespaceRequest\032(.Li" +
-      "stTableDescriptorsByNamespaceResponse\022b\n" +
-      "\031ListTableNamesByNamespace\022!.ListTableNa" +
-      "mesByNamespaceRequest\032\".ListTableNamesBy" +
-      "NamespaceResponseBB\n*org.apache.hadoop.h" +
-      "base.protobuf.generatedB\014MasterProtosH\001\210" +
-      "\001\001\240\001\001"
+      "shot\030\002 \001(\0132\025.ProcedureDescription\"\"\n Get" +
+      "ExcludedRegionsServersRequest\"<\n!GetExcl",
+      "udedRegionsServersResponse\022\027\n\017excludedSe" +
+      "rvers\030\001 \003(\t\"!\n\037GetIncludedRegionServersR" +
+      "equest\";\n GetIncludedRegionServersRespon" +
+      "se\022\027\n\017includedServers\030\001 \003(\t\"&\n$RefreshIn" +
+      "cludeExcludeRSConfigRequest\"\'\n%RefreshIn" +
+      "cludeExcludeRSConfigResponse2\252\032\n\rMasterS" +
+      "ervice\022S\n\024GetSchemaAlterStatus\022\034.GetSche" +
+      "maAlterStatusRequest\032\035.GetSchemaAlterSta" +
+      "tusResponse\022P\n\023GetTableDescriptors\022\033.Get" +
+      "TableDescriptorsRequest\032\034.GetTableDescri",
+      "ptorsResponse\022>\n\rGetTableNames\022\025.GetTabl" +
+      "eNamesRequest\032\026.GetTableNamesResponse\022G\n" +
+      "\020GetClusterStatus\022\030.GetClusterStatusRequ" +
+      "est\032\031.GetClusterStatusResponse\022D\n\017IsMast" +
+      "erRunning\022\027.IsMasterRunningRequest\032\030.IsM" +
+      "asterRunningResponse\0222\n\tAddColumn\022\021.AddC" +
+      "olumnRequest\032\022.AddColumnResponse\022;\n\014Dele" +
+      "teColumn\022\024.DeleteColumnRequest\032\025.DeleteC" +
+      "olumnResponse\022;\n\014ModifyColumn\022\024.ModifyCo" +
+      "lumnRequest\032\025.ModifyColumnResponse\0225\n\nMo",
+      "veRegion\022\022.MoveRegionRequest\032\023.MoveRegio" +
+      "nResponse\022Y\n\026DispatchMergingRegions\022\036.Di" +
+      "spatchMergingRegionsRequest\032\037.DispatchMe" +
+      "rgingRegionsResponse\022;\n\014AssignRegion\022\024.A" +
+      "ssignRegionRequest\032\025.AssignRegionRespons" +
+      "e\022A\n\016UnassignRegion\022\026.UnassignRegionRequ" +
+      "est\032\027.UnassignRegionResponse\022>\n\rOfflineR" +
+      "egion\022\025.OfflineRegionRequest\032\026.OfflineRe" +
+      "gionResponse\0228\n\013DeleteTable\022\023.DeleteTabl" +
+      "eRequest\032\024.DeleteTableResponse\022>\n\rtrunca",
+      "teTable\022\025.TruncateTableRequest\032\026.Truncat" +
+      "eTableResponse\0228\n\013EnableTable\022\023.EnableTa" +
+      "bleRequest\032\024.EnableTableResponse\022;\n\014Disa" +
+      "bleTable\022\024.DisableTableRequest\032\025.Disable" +
+      "TableResponse\0228\n\013ModifyTable\022\023.ModifyTab" +
+      "leRequest\032\024.ModifyTableResponse\0228\n\013Creat" +
+      "eTable\022\023.CreateTableRequest\032\024.CreateTabl" +
+      "eResponse\022/\n\010Shutdown\022\020.ShutdownRequest\032" +
+      "\021.ShutdownResponse\0225\n\nStopMaster\022\022.StopM" +
+      "asterRequest\032\023.StopMasterResponse\022,\n\007Bal",
+      "ance\022\017.BalanceRequest\032\020.BalanceResponse\022" +
+      "M\n\022SetBalancerRunning\022\032.SetBalancerRunni" +
+      "ngRequest\032\033.SetBalancerRunningResponse\022A" +
+      "\n\016RunCatalogScan\022\026.RunCatalogScanRequest" +
+      "\032\027.RunCatalogScanResponse\022S\n\024EnableCatal" +
+      "ogJanitor\022\034.EnableCatalogJanitorRequest\032" +
+      "\035.EnableCatalogJanitorResponse\022\\\n\027IsCata" +
+      "logJanitorEnabled\022\037.IsCatalogJanitorEnab" +
+      "ledRequest\032 .IsCatalogJanitorEnabledResp" +
+      "onse\022L\n\021ExecMasterService\022\032.CoprocessorS",
+      "erviceRequest\032\033.CoprocessorServiceRespon" +
+      "se\022/\n\010Snapshot\022\020.SnapshotRequest\032\021.Snaps" +
+      "hotResponse\022V\n\025GetCompletedSnapshots\022\035.G" +
+      "etCompletedSnapshotsRequest\032\036.GetComplet" +
+      "edSnapshotsResponse\022A\n\016DeleteSnapshot\022\026." +
+      "DeleteSnapshotRequest\032\027.DeleteSnapshotRe" +
+      "sponse\022A\n\016IsSnapshotDone\022\026.IsSnapshotDon" +
+      "eRequest\032\027.IsSnapshotDoneResponse\022D\n\017Res" +
+      "toreSnapshot\022\027.RestoreSnapshotRequest\032\030." +
+      "RestoreSnapshotResponse\022V\n\025IsRestoreSnap",
+      "shotDone\022\035.IsRestoreSnapshotDoneRequest\032" +
+      "\036.IsRestoreSnapshotDoneResponse\022>\n\rExecP" +
+      "rocedure\022\025.ExecProcedureRequest\032\026.ExecPr" +
+      "ocedureResponse\022E\n\024ExecProcedureWithRet\022" +
+      "\025.ExecProcedureRequest\032\026.ExecProcedureRe" +
+      "sponse\022D\n\017IsProcedureDone\022\027.IsProcedureD" +
+      "oneRequest\032\030.IsProcedureDoneResponse\022D\n\017" +
+      "ModifyNamespace\022\027.ModifyNamespaceRequest" +
+      "\032\030.ModifyNamespaceResponse\022D\n\017CreateName" +
+      "space\022\027.CreateNamespaceRequest\032\030.CreateN",
+      "amespaceResponse\022D\n\017DeleteNamespace\022\027.De" +
+      "leteNamespaceRequest\032\030.DeleteNamespaceRe" +
+      "sponse\022Y\n\026GetNamespaceDescriptor\022\036.GetNa" +
+      "mespaceDescriptorRequest\032\037.GetNamespaceD" +
+      "escriptorResponse\022_\n\030ListNamespaceDescri" +
+      "ptors\022 .ListNamespaceDescriptorsRequest\032" +
+      "!.ListNamespaceDescriptorsResponse\022t\n\037Li" +
+      "stTableDescriptorsByNamespace\022\'.ListTabl" +
+      "eDescriptorsByNamespaceRequest\032(.ListTab" +
+      "leDescriptorsByNamespaceResponse\022b\n\031List",
+      "TableNamesByNamespace\022!.ListTableNamesBy" +
+      "NamespaceRequest\032\".ListTableNamesByNames" +
+      "paceResponse\022n\n\035RefreshIncludeExcludeRSC" +
+      "onfig\022%.RefreshIncludeExcludeRSConfigReq" +
+      "uest\032&.RefreshIncludeExcludeRSConfigResp" +
+      "onse\022b\n\031GetExcludedRegionsServers\022!.GetE" +
+      "xcludedRegionsServersRequest\032\".GetExclud" +
+      "edRegionsServersResponse\022_\n\030GetIncludedR" +
+      "egionServers\022 .GetIncludedRegionServersR" +
+      "equest\032!.GetIncludedRegionServersRespons",
+      "eBB\n*org.apache.hadoop.hbase.protobuf.ge" +
+      "neratedB\014MasterProtosH\001\210\001\001\240\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -45341,6 +48014,42 @@ public final class MasterProtos {
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_IsProcedureDoneResponse_descriptor,
               new java.lang.String[] { "Done", "Snapshot", });
+          internal_static_GetExcludedRegionsServersRequest_descriptor =
+            getDescriptor().getMessageTypes().get(82);
+          internal_static_GetExcludedRegionsServersRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_GetExcludedRegionsServersRequest_descriptor,
+              new java.lang.String[] { });
+          internal_static_GetExcludedRegionsServersResponse_descriptor =
+            getDescriptor().getMessageTypes().get(83);
+          internal_static_GetExcludedRegionsServersResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_GetExcludedRegionsServersResponse_descriptor,
+              new java.lang.String[] { "ExcludedServers", });
+          internal_static_GetIncludedRegionServersRequest_descriptor =
+            getDescriptor().getMessageTypes().get(84);
+          internal_static_GetIncludedRegionServersRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_GetIncludedRegionServersRequest_descriptor,
+              new java.lang.String[] { });
+          internal_static_GetIncludedRegionServersResponse_descriptor =
+            getDescriptor().getMessageTypes().get(85);
+          internal_static_GetIncludedRegionServersResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_GetIncludedRegionServersResponse_descriptor,
+              new java.lang.String[] { "IncludedServers", });
+          internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor =
+            getDescriptor().getMessageTypes().get(86);
+          internal_static_RefreshIncludeExcludeRSConfigRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_RefreshIncludeExcludeRSConfigRequest_descriptor,
+              new java.lang.String[] { });
+          internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor =
+            getDescriptor().getMessageTypes().get(87);
+          internal_static_RefreshIncludeExcludeRSConfigResponse_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_RefreshIncludeExcludeRSConfigResponse_descriptor,
+              new java.lang.String[] { });
           return null;
         }
       };

@@ -66,6 +66,7 @@ import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.HealthCheckChore;
 import org.apache.hadoop.hbase.MetaTableAccessor;
 import org.apache.hadoop.hbase.NotServingRegionException;
+import org.apache.hadoop.hbase.ServerExcludedException;
 import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.Stoppable;
 import org.apache.hadoop.hbase.TableDescriptors;
@@ -2020,7 +2021,7 @@ public class HRegionServer extends HasThread implements
     try {
       rpcServices.requestCount.set(0);
       LOG.info("reportForDuty to master=" + masterServerName + " with port="
-        + rpcServices.isa.getPort() + ", startcode=" + this.startcode);
+          + rpcServices.isa.getPort() + ", startcode=" + this.startcode);
       long now = EnvironmentEdgeManager.currentTimeMillis();
       int port = rpcServices.isa.getPort();
       RegionServerStartupRequest.Builder request = RegionServerStartupRequest.newBuilder();
@@ -2036,9 +2037,10 @@ public class HRegionServer extends HasThread implements
         throw ioe;
       } else if (ioe instanceof ServerNotRunningYetException) {
         LOG.debug("Master is not running yet");
-      } else {
-        LOG.warn("error telling master we are up", se);
-      }
+      } else if (ioe instanceof ServerExcludedException) {
+        LOG.fatal("Master rejected this node since this node has been put in the excluded list.");
+        throw ioe;
+      } else LOG.warn("error telling master we are up", se);
     }
     return result;
   }

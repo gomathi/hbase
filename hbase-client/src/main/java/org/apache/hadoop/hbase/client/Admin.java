@@ -1216,4 +1216,24 @@ public interface Admin extends Abortable, Closeable {
    * @return A MasterCoprocessorRpcChannel instance
    */
   CoprocessorRpcChannel coprocessorService();
+  
+  /**
+   * Updates the included/excluded region servers list by reading the config file again.
+   * @throws IOException
+   */
+  void refreshIncludeExcludeRSConfig() throws IOException;
+
+  /**
+   * Returns all the names of the region servers which were added to the exclusion list.
+   * @return
+   * @throws IOException
+   */
+  List<String> getExcludedRegionsServers() throws IOException;
+
+  /**
+   * Returns all the names of the region servers which were added to the inclusion list.
+   * @return
+   * @throws IOException
+   */
+  List<String> getIncludedRegionServers() throws IOException;
 }
